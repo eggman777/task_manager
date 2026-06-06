@@ -27,7 +27,7 @@ export function getTaskById(id) {
  * @param {object} taskData
  * @param {string} taskData.title - 标题（必填）
  * @param {string} [taskData.description] - 描述
- * @param {string|null} [taskData.deadline] - 截止日期 "YYYY-MM-DD"
+ * @param {string|null} [taskData.deadline] - 截止日期 "MM-DD" 或 "MM-DD HH:mm"
  * @param {string} [taskData.priority] - 优先级
  * @param {string[]} [taskData.tags] - 标签
  * @returns {object} 创建的任务对象

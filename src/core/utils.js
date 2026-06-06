@@ -9,79 +9,178 @@ export function generateId() {
 }
 
 /**
- * 格式化日期为友好显示
- * @param {string} dateStr - ISO 日期 "YYYY-MM-DD"
- * @returns {string} 格式化后的日期字符串
+ * 获取当前时间的 ISO 字符串
  */
-export function formatDate(dateStr) {
-  if (!dateStr) return ''
-  const date = new Date(dateStr + 'T00:00:00')
-  const year = date.getFullYear()
-  const month = date.getMonth() + 1
-  const day = date.getDate()
-  return `${year}年${month}月${day}日`
+export function nowISO() {
+  return new Date().toISOString()
 }
 
-/**
- * 判断日期状态
- * @param {string} dateStr - ISO 日期 "YYYY-MM-DD"
- * @returns {{ status: string, label: string }} 状态和显示文本
- */
-export function getDeadlineStatus(dateStr) {
-  if (!dateStr) return { status: 'none', label: '' }
+// ─── 截止日期解析（新格式 "MM-DD HH:mm"） ───
 
+/**
+ * 将 "MM-DD" 解析为实际 Date 对象
+ * 如果今年日期已过去超过183天，则推断为下一年
+ * @param {string} deadline - "MM-DD" 或 "MM-DD HH:mm"
+ * @returns {Date|null}
+ */
+function resolveDeadline(deadline) {
+  if (!deadline) return null
+  const [datePart, timePart] = deadline.split(' ')
+  const [month, day] = datePart.split('-').map(Number)
   const now = new Date()
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
-  const deadline = new Date(dateStr + 'T00:00:00')
-  const diffTime = deadline.getTime() - today.getTime()
-  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
 
-  if (diffDays < 0) {
-    const days = Math.abs(diffDays)
-    return { status: 'overdue', label: `⚠️ 已过期 ${days} 天` }
-  } else if (diffDays === 0) {
-    return { status: 'today', label: '🔥 今天截止' }
-  } else if (diffDays <= 3) {
-    return { status: 'soon', label: `⚡ 还剩 ${diffDays} 天` }
+  let year = now.getFullYear()
+  let target = new Date(year, month - 1, day)
+
+  if (timePart) {
+    const [h, m] = timePart.split(':').map(Number)
+    target.setHours(h, m, 0, 0)
   } else {
-    return { status: 'normal', label: `📅 ${formatDate(dateStr)}` }
+    target.setHours(23, 59, 59, 999)
   }
+
+  // 如果早于今年"今天"超过183天（≈半年），说明是跨年场景
+  // 例：12月设"01-15" → 今年1月早已过去 → 跳转下一年
+  if (target.getTime() < now.getTime() - 183 * 86400000) {
+    year = now.getFullYear() + 1
+    target = new Date(year, month - 1, day)
+    if (timePart) {
+      const [h, m] = timePart.split(':').map(Number)
+      target.setHours(h, m, 0, 0)
+    } else {
+      target.setHours(23, 59, 59, 999)
+    }
+  }
+
+  return target
 }
 
 /**
- * 获取优先级显示文本
- * @param {string} priority - "high" | "medium" | "low"
- * @returns {string}
+ * 获取当天零点
  */
-export function getPriorityLabel(priority) {
-  const map = {
-    high: '🔴 高优先',
-    medium: '🟡 中优先',
-    low: '🟢 低优先'
-  }
-  return map[priority] || ''
+function todayStart() {
+  const d = new Date()
+  return new Date(d.getFullYear(), d.getMonth(), d.getDate())
 }
 
 /**
- * 获取任务当前状态
+ * 格式化月日为中文显示
+ * @param {string} mmdd - "06-15"
+ * @returns {string} "6月15日"
+ */
+function formatMonthDay(mmdd) {
+  if (!mmdd) return ''
+  const [m, d] = mmdd.split('-').map(Number)
+  return `${m}月${d}日`
+}
+
+/**
+ * 判断截止日期状态
+ * @param {string} deadline - "MM-DD" 或 "MM-DD HH:mm" 或 null
+ * @returns {{ status: string, label: string }}
+ *   status: 'none' | 'overdue' | 'today' | 'soon' | 'normal'
+ */
+export function getDeadlineStatus(deadline) {
+  if (!deadline) return { status: 'none', label: '' }
+
+  const [datePart, timePart] = deadline.split(' ')
+  const target = resolveDeadline(deadline)
+  const now = new Date()
+  const nowStart = todayStart()
+  const targetStart = new Date(target.getFullYear(), target.getMonth(), target.getDate())
+
+  const diffMs = target.getTime() - now.getTime()
+  const diffDays = Math.round((targetStart.getTime() - nowStart.getTime()) / 86400000)
+
+  // ── 已过期 ──
+  if (diffMs < 0) {
+    if (diffDays < 0) {
+      return { status: 'overdue', label: `⚠️ 已过期 ${Math.abs(diffDays)} 天` }
+    }
+    // 同一天但时间已过（如今天17:00截止，现在18:00）
+    return { status: 'overdue', label: `⚠️ 已过期 — ${formatMonthDay(datePart)} ${timePart}` }
+  }
+
+  // ── 今天 ──
+  if (diffDays === 0) {
+    if (timePart) {
+      const diffMins = Math.floor(diffMs / 60000)
+      const label = diffMins < 60
+        ? `🔥 今天 ${timePart}（剩${diffMins}分钟）`
+        : `🔥 今天 ${timePart} 截止`
+      return { status: 'today', label }
+    }
+    return { status: 'today', label: '🔥 今天截止' }
+  }
+
+  // ── 明天 ──
+  if (diffDays === 1) {
+    return { status: 'soon', label: timePart ? `📅 明天 ${timePart}` : '📅 明天' }
+  }
+
+  // ── 3天内 ──
+  if (diffDays <= 3) {
+    return { status: 'soon', label: timePart
+      ? `⚡ ${formatMonthDay(datePart)} ${timePart}（剩${diffDays}天）`
+      : `⚡ 还剩 ${diffDays} 天`
+    }
+  }
+
+  // ── 正常 ──
+  return { status: 'normal', label: timePart
+    ? `📅 ${formatMonthDay(datePart)} ${timePart}`
+    : `📅 ${formatMonthDay(datePart)}`
+  }
+}
+
+/**
+ * 获取任务卡片的状态样式类名
  * @param {object} task
  * @returns {string}
  */
 export function getTaskCardStatusClass(task) {
   if (task.completed) return 'completed'
-
   if (!task.deadline) return ''
-
-  const now = new Date()
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
-  const deadline = new Date(task.deadline + 'T00:00:00')
-  const diffDays = Math.ceil((deadline.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
-
-  if (diffDays < 0) return 'overdue'
-  if (diffDays === 0) return 'due-today'
-  if (diffDays <= 3) return 'due-soon'
+  const { status } = getDeadlineStatus(task.deadline)
+  if (status === 'overdue') return 'overdue'
+  if (status === 'today') return 'due-today'
+  if (status === 'soon') return 'due-soon'
   return ''
 }
+
+/**
+ * 判断两个日期是否同一天
+ */
+function isSameDay(a, b) {
+  return a.getFullYear() === b.getFullYear()
+    && a.getMonth() === b.getMonth()
+    && a.getDate() === b.getDate()
+}
+
+/**
+ * 获取今天的 "MM-DD" 字符串
+ */
+export function getTodayDateStr() {
+  const d = new Date()
+  return `${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
+}
+
+/**
+ * 获取明天的 "MM-DD" 字符串
+ */
+export function getTomorrowDateStr() {
+  const d = new Date(Date.now() + 86400000)
+  return `${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
+}
+
+/**
+ * 数字补零
+ */
+export function pad(n) {
+  return String(n).padStart(2, '0')
+}
+
+// ─── 筛选 / 排序 ───
 
 /**
  * 根据查询文本过滤任务
@@ -114,7 +213,9 @@ export function sortTasks(tasks, sortBy) {
         if (!a.deadline && !b.deadline) return 0
         if (!a.deadline) return 1
         if (!b.deadline) return -1
-        return new Date(a.deadline) - new Date(b.deadline)
+        const aDate = resolveDeadline(a.deadline)
+        const bDate = resolveDeadline(b.deadline)
+        return aDate.getTime() - bDate.getTime()
       })
       break
     case 'priority':
@@ -125,11 +226,4 @@ export function sortTasks(tasks, sortBy) {
       break
   }
   return sorted
-}
-
-/**
- * 获取当前时间的 ISO 字符串
- */
-export function nowISO() {
-  return new Date().toISOString()
 }
