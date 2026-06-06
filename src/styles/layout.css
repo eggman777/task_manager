@@ -22,10 +22,12 @@
   position: relative;
 }
 
-.app-header .theme-toggle {
+.header-tools {
   position: absolute;
   top: 0;
   right: 0;
+  display: flex;
+  gap: var(--space-sm);
 }
 
 .app-title {

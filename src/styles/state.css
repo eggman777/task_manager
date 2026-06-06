@@ -33,6 +33,39 @@
   100% { transform: scale(1); }
 }
 
+@keyframes colorPulse {
+  0% { filter: brightness(1); }
+  50% { filter: brightness(1.15) saturate(1.2); }
+  100% { filter: brightness(1); }
+}
+
+/* ─── Smooth Color Transitions ─── */
+.btn-primary,
+.stats-number,
+.filter-btn.active,
+.quick-btn.active,
+.priority-option.selected,
+.task-card::before,
+.stats-progress-fill,
+.color-dot,
+.priority-badge.high,
+.task-card.priority-high::before {
+  transition: background 0.4s cubic-bezier(0.22, 1, 0.36, 1),
+              color 0.4s cubic-bezier(0.22, 1, 0.36, 1),
+              border-color 0.4s cubic-bezier(0.22, 1, 0.36, 1),
+              box-shadow 0.4s cubic-bezier(0.22, 1, 0.36, 1) !important;
+}
+
+/* Color dot micro-pulse on theme change */
+.color-dot.animating {
+  animation: colorPulse 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Color picker panel entrance */
+.color-picker-panel {
+  animation: scaleIn 0.25s cubic-bezier(0.22, 1, 0.36, 1) ease;
+}
+
 /* ─── Entrance Animations ─── */
 
 /* Modal */
