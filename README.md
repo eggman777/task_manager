@@ -1,75 +1,117 @@
 # 🎓 学习任务管理器
 
-一个活泼友好的网页版学习任务管理小工具，帮你轻松管理学习计划。
+一个可直接安装到手机的 PWA 待办工具，专为学习场景设计。
+
+> **随手记、随手清** — 不做重管理，只帮你记住今天要做什么。
 
 ---
 
-## ✨ 功能概览
+## ✨ 功能
 
-### 核心功能
-
+### 核心
 | 功能 | 说明 |
 |------|------|
-| 📝 **新建任务** | 填写任务标题（必填）、描述（选填），快速创建 |
-| 📅 **截止日期** | 设定任务的截止日期，过期自动红色预警 |
-| 👀 **查看任务** | 列表展示全部任务，支持按状态筛选（全部 / 进行中 / 已完成） |
-| ✅ **完成任务** | 勾选复选框标记完成，已完成任务显示删除线 |
-| 🗑️ **删除任务** | 删除前弹出确认框，防止误操作 |
-| ✏️ **编辑任务** | 创建后可随时修改标题、描述、日期、优先级等信息 |
+| 📝 **新建任务** | 标题 + 描述 + 截止日期 + 优先级 + 标签 |
+| ✅ **完成任务** | 点击复选框，卡片向右滑出消失 |
+| ✏️ **编辑任务** | 随时修改任何字段 |
+| 🗑️ **删除 + 撤销** | 桌面确认弹窗 / 移动端即时删除 + 3秒可撤销 |
 
-### 增强功能
-
+### 增强
 | 功能 | 说明 |
 |------|------|
-| 🔴🟡🟢 **优先级** | 高 / 中 / 低三级，用颜色直观区分 |
-| 🏷️ **标签分类** | 预设常用标签 + 支持自定义标签，按标签筛选任务 |
-| 🔍 **搜索过滤** | 输入关键词快速查找任务 |
-| 📊 **排序** | 按截止日期、优先级、创建时间灵活排序 |
-| 📈 **进度统计** | 顶部显示「已完成 X / 总数 Y」进度条 |
-| ⌨️ **键盘快捷键** | `Ctrl+N` 快速新建任务 |
-| 📱 **响应式布局** | 手机端也能正常使用 |
+| 🔴🟡🟢 **优先级** | 高/中/低，卡片左边条 + 标签颜色区分 |
+| 🏷️ **标签** | 预设（课堂/编程/阅读/作业/复习）+ 自定义标签 |
+| 🔍 **搜索** | 实时关键词搜索标题和描述 |
+| 📊 **排序** | 按截止日期 / 优先级 / 创建时间 |
+| 📈 **统计栏** | 总任务 / 已完成 / 进行中 + 进度条 |
+| ☑️ **批量删除** | 切换到已完成 → 多选→批量删除（可撤销） |
+
+### 视觉
+| 功能 | 说明 |
+|------|------|
+| 🌙 **深色模式** | 手动切换，自动跟随系统 |
+| 🎨 **自定义主题色** | 12 种预设 + 任意自定义颜色，即时生效 |
+| 📱 **PWA 安装** | 添加到主屏幕，像原生 App 一样使用 |
+| 👆 **滑动操作** | 移动端左滑展开删除按钮 |
+| 🍞 **撤销 Toast** | 删除后底部弹出，3秒内可恢复 |
 
 ---
 
 ## 🛠️ 技术栈
 
-| 类别 | 技术选择 |
-|------|----------|
-| **前端语言** | JavaScript (ES Modules)，无框架 |
-| **构建工具** | [Vite](https://vitejs.dev/) — 极速 HMR 热更新 |
-| **样式** | 纯 CSS（CSS 变量 + Flexbox + Grid） |
-| **数据存储** | 浏览器 `localStorage`（刷新不丢失） |
-| **运行环境** | Node.js ≥ 18 |
+| 类别 | 选型 |
+|------|------|
+| **前端** | 原生 JavaScript (ES Modules)，无框架 |
+| **构建** | Vite 6（HMR 热更新，<250ms 构建） |
+| **样式** | 纯 CSS（CSS 变量 + Flexbox） |
+| **字体** | Fraunces（标题）+ DM Sans（正文） |
+| **存储** | 浏览器 localStorage |
+| **PWA** | Service Worker + manifest.json，离线可用 |
+| **部署** | 构建产物静态文件 ~16KB gzip |
 
 ---
 
 ## 🚀 快速开始
 
-### 前置要求
-- [Node.js](https://nodejs.org/) ≥ 18（你已安装 v24.16.0 ✅）
-
-### 安装与运行
-
 ```bash
-# 1. 进入项目目录
-cd task_manager
-
-# 2. 安装依赖
+# 安装依赖
 npm install
 
-# 3. 启动开发服务器
+# 启动开发服务器（带热更新）
 npm run dev
-```
 
-浏览器会自动打开 `http://localhost:5173`，修改代码即时生效。
-
-### 构建生产版本
-
-```bash
+# 构建生产版本
 npm run build
+
+# 预览构建产物
+npm run preview
 ```
 
-构建产物在 `dist/` 目录，可直接部署到 GitHub Pages 等静态托管平台。
+---
+
+## 🗺️ 架构
+
+### 单向数据流
+
+```
+localStorage ←→ storage.js ←→ taskManager.js ←→ app.js → UI 组件 (DOM)
+```
+
+1. `app.js` 从 `storage.js` 加载任务到 `this.tasks[]`
+2. `app.js` 过滤/排序后传给 `TaskList`
+3. 用户操作通过回调通知 `app.js`
+4. `app.js` 更新数据 → 写 localStorage → 重新渲染
+
+### 组件树
+
+```
+App
+├── StatsBar          ← 完成统计 + 进度条
+├── FilterBar         ← 状态筛选 + 搜索框 + 排序
+├── TaskList          ← 任务列表（移动端嵌套 SwipeableTask）
+│   └── TaskItem[]    ← 单张任务卡片
+├── TaskForm          ← 新建/编辑（桌面弹窗 / 移动端 Bottom Sheet）
+├── ConfirmDialog     ← 桌面删除确认弹窗
+├── Toast             ← 移动端撤销删除通知
+├── FAB               ← 移动端右下角浮动按钮
+└── SwipeableTask     ← 移动端滑动删除
+```
+
+### 数据模型
+
+```js
+{
+  id: string,              // crypto.randomUUID()
+  title: string,           // 必填
+  description: string,     // 选填
+  deadline: string|null,   // "MM-DD" 或 "MM-DD HH:mm"
+  priority: "high" | "medium" | "low",
+  tags: string[],
+  completed: boolean,
+  createdAt: string,       // ISO 时间戳
+  updatedAt: string
+}
+```
 
 ---
 
@@ -77,104 +119,60 @@ npm run build
 
 ```
 task_manager/
-├── index.html                 # 页面入口
-├── package.json               # 项目配置
-├── vite.config.js             # Vite 配置
-├── README.md                  # 项目说明（你正在读这个）
-├── tm.md                      # 原始需求文档
+├── index.html              # HTML 入口 + Google Fonts + PWA meta
+├── package.json
+├── vite.config.js
+├── README.md
+├── tm.md                   # 原始需求文档
 │
 ├── public/
-│   └── favicon.svg            # 网站图标
+│   ├── manifest.json       # PWA 配置（standalone 模式）
+│   ├── sw.js               # Service Worker（离线缓存）
+│   ├── icon-192.svg        # PWA 图标 192px
+│   └── icon-512.svg        # PWA 图标 512px
 │
 └── src/
-    ├── main.js                # 应用入口：挂载初始化
-    ├── app.js                 # 主控制器：协调所有组件
+    ├── main.js             # 入口：加载样式 + 注册 Service Worker
+    ├── app.js              # 主控制器
     │
-    ├── components/            # UI 组件（每个是一个 ES 模块）
-    │   ├── TaskForm.js        # 新建/编辑任务表单
-    │   ├── TaskList.js        # 任务列表容器
-    │   ├── TaskItem.js        # 单个任务卡片
-    │   ├── FilterBar.js       # 筛选栏 + 搜索 + 排序
-    │   ├── StatsBar.js        # 顶部统计栏
-    │   └── ConfirmDialog.js   # 删除确认弹窗
+    ├── core/
+    │   ├── storage.js      # localStorage 封装
+    │   ├── taskManager.js  # CRUD 业务逻辑
+    │   ├── utils.js        # 日期解析、排序、搜索、工具函数
+    │   └── theme.js        # 主题色管理 + 12 色预设
     │
-    ├── core/                  # 业务逻辑层
-    │   ├── storage.js         # localStorage 读写封装
-    │   ├── taskManager.js     # 任务 CRUD（增删改查）操作
-    │   └── utils.js           # 工具函数（日期格式化、ID 生成等）
+    ├── components/
+    │   ├── TaskForm.js     # 新建/编辑表单（桌面 Modal / 移动端 Bottom Sheet）
+    │   ├── TaskList.js     # 任务列表容器
+    │   ├── TaskItem.js     # 单张任务卡片
+    │   ├── FilterBar.js    # 筛选 + 搜索 + 排序
+    │   ├── StatsBar.js     # 统计栏
+    │   ├── ConfirmDialog.js# 确认弹窗
+    │   ├── Toast.js        # 撤销 Toast
+    │   ├── FAB.js          # 浮动按钮
+    │   └── SwipeableTask.js# 移动端滑动
     │
-    └── styles/                # 样式文件
-        ├── base.css           # CSS 变量、重置、全局样式
-        ├── layout.css         # 页面布局
-        ├── components.css     # 组件样式
-        └── state.css          # 状态颜色（过期/优先级/标签）
+    └── styles/
+        ├── base.css        # CSS 变量、重置、深色模式、滚动条、噪点纹理
+        ├── layout.css      # 页面布局、响应式
+        ├── components.css  # 组件样式
+        ├── state.css       # 动画、状态颜色
+        └── mobile.css      # 触控热区、安全区域、PTR、FAB、Bottom Sheet
 ```
-
----
-
-## 📦 数据模型
-
-每个任务的数据结构：
-
-```javascript
-{
-  id: "a1b2c3d4...",          // 唯一标识，由 crypto.randomUUID() 生成
-  title: "复习线性代数",        // 任务标题（必填，最长 100 字）
-  description: "第三章矩阵运算", // 任务描述（选填，最长 500 字）
-  deadline: "2026-06-15",      // 截止日期（选填，ISO 日期格式）
-  priority: "high",            // 优先级："high" | "medium" | "low"
-  tags: ["数学", "考试"],       // 标签数组
-  completed: false,            // 是否已完成
-  createdAt: "2026-06-06T...", // 创建时间
-  updatedAt: "2026-06-06T..."  // 最后修改时间
-}
-```
-
-所有数据存储在浏览器 `localStorage` 中，键名为 `learningTasks`。
-
----
-
-## 🎨 UI 设计
-
-### 设计风格：活泼友好风
-
-- 🎨 **暖色调配色**，柔和渐变背景
-- 🔵 **圆角卡片**（12-16px 圆角），按钮和输入框
-- 😊 **Emoji 图标**替代传统图标
-- ✨ **微动画**：完成任务时过渡效果
-- 📭 **空状态引导**：没有任务时显示可爱提示
-- 📱 **响应式**：桌面端和手机端都能用
-
-### 预设标签
-
-🏫 课堂 · 💻 编程 · 📚 阅读 · 📝 作业 · 📖 复习 · 🏷️ 自定义
-
-### 截止日期状态提示
-
-| 状态 | 颜色 | 示例 |
-|------|------|------|
-| ⚠️ **已过期** | 红色 | `📅 2026-06-10 ⚠️ 已过期` |
-| 🔥 **今天截止** | 橙色 | `📅 今天截止 🔥` |
-| ⚡ **即将到期**（3 天内） | 黄色 | `📅 还剩 2 天 ⚡` |
-| 📅 **正常** | 默认 | `📅 2026-06-20` |
-
----
-
-## 🗺️ 实施计划
-
-| 阶段 | 内容 | 预计产出 |
-|------|------|----------|
-| **Phase 1** | 项目初始化 — Vite 脚手架、目录结构、CSS 变量 | 空白的样式就绪页面 |
-| **Phase 2** | 数据层 — storage.js + taskManager.js + utils.js | 可测试的完整 CRUD |
-| **Phase 3** | 核心 UI — TaskForm、TaskItem、TaskList、FilterBar | 5 项核心功能 MVP |
-| **Phase 4** | 增强功能 — 优先级、标签、编辑、排序、搜索、统计 | 功能完整的 v1.0 |
-| **Phase 5** | 打磨交付 — 空状态、响应式、快捷键、README | 可交付成品 |
 
 ---
 
 ## 📝 开发日志
 
-- `2026-06-06` — 项目规划，技术选型，README 编写
+| 日期 | 版本 | 内容 |
+|------|------|------|
+| 2026-06-06 | v0.1 | 项目骨架 + 数据层 + 核心 UI |
+| 2026-06-06 | v0.2 | 截止日期去年份 + 可选时分 |
+| 2026-06-06 | v0.3 | 优先级、标签、编辑、搜索、排序、统计 |
+| 2026-06-06 | v0.4 | UI 重构 Warm Studio（赤陶调 + 字体 + 噪点）|
+| 2026-06-06 | v0.5 | 自定义主题色 + 动画 |
+| 2026-06-06 | v0.6 | PWA + 移动端滑动 + FAB + Toast |
+| 2026-06-06 | v0.7 | 批量删除、Bottom Sheet、安装引导、下拉刷新 |
 
 ---
 
