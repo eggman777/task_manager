@@ -1,35 +1,44 @@
 // 🎓 学习任务管理器 - 主控制器
-// 协调所有组件和事件处理
 
-import { getAllTasks, createTask, toggleTask, deleteTask } from './core/taskManager.js'
+import { getAllTasks, createTask, updateTask, toggleTask, deleteTask } from './core/taskManager.js'
 import { searchTasks, sortTasks } from './core/utils.js'
 import { createTaskForm } from './components/TaskForm.js'
 import { createTaskList } from './components/TaskList.js'
 import { createFilterBar } from './components/FilterBar.js'
+import { createStatsBar } from './components/StatsBar.js'
 import { createConfirmDialog } from './components/ConfirmDialog.js'
 
 class App {
   constructor() {
     this.tasks = []
-    this.filter = 'all' // 'all' | 'active' | 'completed'
-    this.isLoaded = false
+    this.filter = 'all'
+    this.searchQuery = ''
+    this.sortBy = 'deadline'
   }
 
   init() {
     this.tasks = getAllTasks()
-    this.isLoaded = true
     this.render()
   }
 
-  getFilteredTasks() {
+  getFilteredSortedTasks() {
     let result = [...this.tasks]
 
     // 状态筛选
-    if (this.filter === 'active') {
-      result = result.filter(t => !t.completed)
-    } else if (this.filter === 'completed') {
-      result = result.filter(t => t.completed)
-    }
+    if (this.filter === 'active') result = result.filter(t => !t.completed)
+    else if (this.filter === 'completed') result = result.filter(t => t.completed)
+
+    // 搜索
+    result = searchTasks(result, this.searchQuery)
+
+    // 排序
+    result = sortTasks(result, this.sortBy)
+
+    // 已完成排最后
+    result.sort((a, b) => {
+      if (a.completed !== b.completed) return a.completed ? 1 : -1
+      return 0
+    })
 
     return result
   }
@@ -38,7 +47,7 @@ class App {
     const appEl = document.querySelector('#app')
     if (!appEl) return
 
-    const filteredTasks = this.getFilteredTasks()
+    const displayTasks = this.getFilteredSortedTasks()
 
     appEl.innerHTML = `
       <header class="app-header">
@@ -46,6 +55,7 @@ class App {
         <p class="app-subtitle">轻松管理你的学习计划 ✨</p>
       </header>
       <main class="app-main">
+        <div data-region="stats"></div>
         <div class="toolbar">
           <div class="toolbar-left">
             <button class="btn btn-primary" data-action="new-task">📝 新建任务</button>
@@ -56,41 +66,43 @@ class App {
       </main>
     `
 
-    // 绑定新建任务按钮
-    appEl.querySelector('[data-action="new-task"]').addEventListener('click', () => {
-      this.openNewTaskForm()
-    })
+    // 新建任务
+    appEl.querySelector('[data-action="new-task"]').addEventListener('click', () => this.openNewTaskForm(null))
 
-    // 渲染筛选栏
+    // 统计栏
+    const statsRegion = appEl.querySelector('[data-region="stats"]')
+    if (statsRegion) statsRegion.appendChild(createStatsBar())
+
+    // 筛选栏
     const filterRegion = appEl.querySelector('[data-region="filter-bar"]')
     if (filterRegion) {
-      const filterBar = createFilterBar({
+      filterRegion.appendChild(createFilterBar({
         currentFilter: this.filter,
-        onFilterChange: (newFilter) => {
-          this.filter = newFilter
-          this.render()
-        }
-      })
-      filterRegion.appendChild(filterBar)
+        currentSort: this.sortBy,
+        searchQuery: this.searchQuery,
+        onFilterChange: f => { this.filter = f; this.render() },
+        onSortChange: s => { this.sortBy = s; this.render() },
+        onSearchChange: q => { this.searchQuery = q; this.render() }
+      }))
     }
 
-    // 渲染任务列表
+    // 任务列表
     const listRegion = appEl.querySelector('[data-region="task-list"]')
     if (listRegion) {
-      const taskList = createTaskList(filteredTasks, {
-        onToggle: (id) => this.handleToggle(id),
-        onDelete: (task) => this.handleDelete(task)
-      })
-      listRegion.appendChild(taskList)
+      listRegion.appendChild(createTaskList(displayTasks, {
+        onToggle: id => this.handleToggle(id),
+        onDelete: task => this.handleDelete(task),
+        onEdit: task => this.handleEdit(task)
+      }))
     }
   }
 
-  // =========== 事件处理 ===========
+  // ─── 事件处理 ───
 
-  openNewTaskForm() {
+  openNewTaskForm(task) {
     const form = createTaskForm({
-      task: null,
-      onSubmit: (data) => this.handleCreate(data),
+      task,
+      onSubmit: data => task ? this.handleUpdate(task.id, data) : this.handleCreate(data),
       onCancel: () => {}
     })
     document.body.appendChild(form)
@@ -100,6 +112,16 @@ class App {
     createTask(data)
     this.tasks = getAllTasks()
     this.render()
+  }
+
+  handleUpdate(id, data) {
+    updateTask(id, data)
+    this.tasks = getAllTasks()
+    this.render()
+  }
+
+  handleEdit(task) {
+    this.openNewTaskForm(task)
   }
 
   handleToggle(id) {
@@ -124,6 +146,10 @@ class App {
 }
 
 const app = new App()
-document.addEventListener('DOMContentLoaded', () => app.init())
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', () => app.init())
+} else {
+  app.init()
+}
 
 export default app

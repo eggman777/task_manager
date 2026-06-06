@@ -543,3 +543,122 @@
   font-size: var(--font-size-xs);
   color: var(--color-text-dim);
 }
+
+/* ---------- Priority Selector ---------- */
+.priority-selector {
+  display: flex;
+  gap: var(--space-sm);
+  flex-wrap: wrap;
+}
+
+.priority-option {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  padding: var(--space-sm) var(--space-md);
+  border-radius: var(--radius-full);
+  border: 2px solid var(--color-border-light);
+  cursor: pointer;
+  font-size: var(--font-size-sm);
+  transition: all var(--transition-fast);
+  user-select: none;
+}
+
+.priority-option:hover {
+  border-color: var(--color-border);
+  background: var(--color-bg);
+}
+
+.priority-option.selected {
+  border-color: var(--color-primary);
+  background: var(--color-primary-bg);
+}
+
+.priority-option input[type="radio"] {
+  display: none;
+}
+
+.priority-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.priority-dot.high { background: var(--color-high); }
+.priority-dot.medium { background: var(--color-medium); }
+.priority-dot.low { background: var(--color-low); }
+
+/* ---------- Tag System ---------- */
+.tag-presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-xs);
+}
+
+.tag-preset-btn {
+  padding: var(--space-xs) var(--space-md);
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-sm);
+  background: var(--color-border-light);
+  color: var(--color-text-secondary);
+  transition: all var(--transition-fast);
+}
+
+.tag-preset-btn:hover {
+  background: var(--color-tag-bg);
+  color: var(--color-tag-text);
+}
+
+.tag-preset-btn.active {
+  background: var(--color-tag-bg);
+  color: var(--color-tag-text);
+  font-weight: 600;
+}
+
+.tag-custom-row {
+  margin-top: var(--space-xs);
+}
+
+.tag-custom-input {
+  width: 100%;
+  font-size: var(--font-size-sm);
+}
+
+.tag-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-xs);
+  margin-top: var(--space-xs);
+  min-height: 28px;
+}
+
+.tag-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 3px 10px;
+  border-radius: var(--radius-full);
+  background: var(--color-tag-bg);
+  color: var(--color-tag-text);
+  font-size: var(--font-size-xs);
+  font-weight: 500;
+}
+
+.tag-chip-remove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  font-size: 14px;
+  line-height: 1;
+  color: var(--color-tag-text);
+  opacity: 0.6;
+}
+
+.tag-chip-remove:hover {
+  opacity: 1;
+  background: rgba(0, 0, 0, 0.1);
+}

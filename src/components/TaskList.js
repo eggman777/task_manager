@@ -5,13 +5,14 @@ import { createTaskItem } from './TaskItem.js'
 
 /**
  * 创建任务列表
- * @param {object[]} tasks - 要显示的任务数组
- * @param {object} handlers - 事件处理回调
- * @param {Function} handlers.onToggle - 切换完成状态
- * @param {Function} handlers.onDelete - 删除任务
- * @returns {HTMLElement} 列表 DOM 元素
+ * @param {object[]} tasks - 已筛选排序好的任务
+ * @param {object} handlers
+ * @param {Function} handlers.onToggle
+ * @param {Function} handlers.onDelete
+ * @param {Function} handlers.onEdit
+ * @returns {HTMLElement}
  */
-export function createTaskList(tasks, { onToggle, onDelete }) {
+export function createTaskList(tasks, { onToggle, onDelete, onEdit }) {
   const container = document.createElement('div')
   container.className = 'task-list-container'
 
@@ -26,15 +27,8 @@ export function createTaskList(tasks, { onToggle, onDelete }) {
     return container
   }
 
-  // 先显示未完成，再显示已完成
-  const sorted = [...tasks].sort((a, b) => {
-    if (a.completed !== b.completed) return a.completed ? 1 : -1
-    return 0
-  })
-
-  sorted.forEach(task => {
-    const item = createTaskItem(task, { onToggle, onDelete })
-    container.appendChild(item)
+  tasks.forEach(task => {
+    container.appendChild(createTaskItem(task, { onToggle, onDelete, onEdit }))
   })
 
   return container

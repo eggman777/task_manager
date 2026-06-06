@@ -15,6 +15,20 @@ export function nowISO() {
   return new Date().toISOString()
 }
 
+/**
+ * 获取优先级显示文本
+ * @param {string} priority - "high" | "medium" | "low"
+ * @returns {string}
+ */
+export function getPriorityLabel(priority) {
+  const map = {
+    high: '🔴 高优先',
+    medium: '🟡 中优先',
+    low: '🟢 低优先'
+  }
+  return map[priority] || ''
+}
+
 // ─── 截止日期解析（新格式 "MM-DD HH:mm"） ───
 
 /**
