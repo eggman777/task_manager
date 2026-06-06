@@ -1,0 +1,349 @@
+/* ============================================
+   Mobile-Specific Styles
+   ============================================ */
+
+/* ─── Touch target sizing ─── */
+@media (pointer: coarse) {
+  .btn, .filter-btn, .quick-btn, .theme-toggle, .color-toggle,
+  .color-swatch, .tag-preset-btn, .tag-chip-remove,
+  .form-modal-close, .confirm-btn-cancel, .confirm-btn-delete {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  .btn-sm {
+    min-height: 36px;
+    min-width: 36px;
+  }
+
+  .task-checkbox {
+    width: 24px;
+    height: 24px;
+    margin-top: 1px;
+  }
+
+  .search-input,
+  .sort-select,
+  .dl-select,
+  .dl-time-input,
+  .tag-custom-input {
+    font-size: 16px; /* prevent iOS zoom on focus */
+  }
+
+  .filter-btn {
+    padding: 10px 18px;
+  }
+}
+
+/* ─── Safe area insets ─── */
+@supports (padding: env(safe-area-inset-bottom)) {
+  #app {
+    padding-left: calc(var(--space-lg) + env(safe-area-inset-left));
+    padding-right: calc(var(--space-lg) + env(safe-area-inset-right));
+    padding-top: calc(var(--space-lg) + env(safe-area-inset-top));
+    padding-bottom: calc(var(--space-2xl) + env(safe-area-inset-bottom));
+  }
+}
+
+/* ─── FAB (Floating Action Button) ─── */
+.fab {
+  position: fixed;
+  bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+  right: calc(24px + env(safe-area-inset-right, 0px));
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: white;
+  font-size: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.2), 0 0 0 0 rgba(194,103,61,0);
+  z-index: 50;
+  transition: all var(--transition-fast);
+  border: none;
+  cursor: pointer;
+}
+
+.fab:hover {
+  background: var(--accent-hover);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.25);
+  transform: scale(1.05);
+}
+
+.fab:active {
+  transform: scale(0.92);
+}
+
+.fab.ripple {
+  animation: fabRipple 0.6s ease;
+}
+
+@keyframes fabRipple {
+  0% { box-shadow: 0 4px 16px rgba(0,0,0,0.2), 0 0 0 0 var(--accent); }
+  50% { box-shadow: 0 4px 16px rgba(0,0,0,0.2), 0 0 0 16px rgba(194,103,61,0.15); }
+  100% { box-shadow: 0 4px 16px rgba(0,0,0,0.2), 0 0 0 0 rgba(194,103,61,0); }
+}
+
+/* ─── Toast ─── */
+.toast-container {
+  position: fixed;
+  bottom: calc(100px + env(safe-area-inset-bottom, 0px));
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 200;
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.toast {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  padding: var(--space-sm) var(--space-lg);
+  background: var(--text);
+  color: var(--bg);
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-sm);
+  box-shadow: var(--shadow-lg);
+  pointer-events: auto;
+  animation: toastIn 0.25s ease forwards;
+  white-space: nowrap;
+}
+
+.toast.leaving {
+  animation: toastOut 0.2s ease forwards;
+}
+
+.toast-action {
+  font-weight: 600;
+  color: var(--accent);
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  transition: background var(--transition-fast);
+  border: none;
+  background: none;
+  font-size: var(--font-size-sm);
+}
+
+.toast-action:hover {
+  background: rgba(255,255,255,0.1);
+}
+
+@keyframes toastIn {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes toastOut {
+  from { opacity: 1; transform: translateY(0); }
+  to { opacity: 0; transform: translateY(16px); }
+}
+
+/* ─── Swipe indicators ─── */
+.swipe-container {
+  position: relative;
+  overflow: hidden;
+  touch-action: pan-y;
+  user-select: none;
+}
+
+.swipe-actions {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  gap: 0;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.swipe-action-btn {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 20px;
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  color: white;
+  border: none;
+  pointer-events: auto;
+  min-width: 72px;
+  transition: background var(--transition-fast);
+}
+
+.swipe-action-btn.delete {
+  background: var(--danger);
+}
+
+.swipe-action-btn.complete {
+  background: var(--success);
+}
+
+.swipe-content {
+  position: relative;
+  z-index: 2;
+  background: var(--card);
+  transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: transform;
+}
+
+/* ─── Bottom Sheet (mobile form) ─── */
+.bottom-sheet-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.4);
+  z-index: 100;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  animation: fadeIn 0.15s ease;
+}
+
+.bottom-sheet {
+  width: 100%;
+  max-width: 520px;
+  max-height: 85vh;
+  background: var(--card);
+  border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+  padding: var(--space-lg);
+  padding-bottom: calc(var(--space-lg) + env(safe-area-inset-bottom, 0px));
+  overflow-y: auto;
+  animation: sheetSlideUp 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.bottom-sheet.dragging {
+  transition: none;
+}
+
+.sheet-handle {
+  width: 36px;
+  height: 4px;
+  background: var(--border);
+  border-radius: 2px;
+  margin: 0 auto var(--space-lg);
+}
+
+@keyframes sheetSlideUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+/* ─── Mobile layout adjustments ─── */
+@media (max-width: 480px) {
+  .app-title {
+    font-size: var(--font-size-xl);
+  }
+
+  .stats-bar {
+    padding: var(--space-sm) var(--space-md);
+    gap: var(--space-sm);
+  }
+
+  .stats-number {
+    font-size: var(--font-size-lg);
+  }
+
+  .stats-divider {
+    display: none;
+  }
+
+  .toolbar {
+    flex-direction: column;
+    gap: var(--space-sm);
+  }
+
+  .toolbar-right {
+    width: 100%;
+    justify-content: stretch;
+  }
+
+  .search-input {
+    width: 100%;
+    flex: 1;
+  }
+
+  .task-card {
+    padding: var(--space-md);
+  }
+
+  .task-actions {
+    flex-wrap: wrap;
+  }
+
+  .header-tools {
+    gap: 8px;
+  }
+
+  .color-picker-panel {
+    margin-top: var(--space-sm);
+    padding: var(--space-md);
+  }
+
+  .color-presets {
+    gap: 4px;
+  }
+
+  .color-swatch {
+    min-width: 48px;
+    padding: 6px;
+  }
+
+  .swatch-fill {
+    width: 24px;
+    height: 24px;
+  }
+
+  .swatch-name {
+    font-size: 10px;
+  }
+}
+
+/* ─── Install prompt ─── */
+.install-prompt {
+  position: fixed;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 100;
+  background: var(--card);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-lg);
+  padding: var(--space-md) var(--space-lg);
+  box-shadow: var(--shadow-lg);
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  font-size: var(--font-size-sm);
+  animation: slideDown 0.3s ease;
+  max-width: 90vw;
+}
+
+.install-prompt-text {
+  flex: 1;
+  color: var(--text);
+}
+
+.install-prompt-btn {
+  padding: var(--space-sm) var(--space-md);
+  background: var(--accent);
+  color: white;
+  border-radius: var(--radius-full);
+  font-weight: 500;
+  font-size: var(--font-size-sm);
+  white-space: nowrap;
+}
+
+.install-prompt-close {
+  color: var(--text-dim);
+  font-size: 18px;
+  padding: 4px;
+}

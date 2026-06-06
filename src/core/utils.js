@@ -194,6 +194,13 @@ export function pad(n) {
   return String(n).padStart(2, '0')
 }
 
+/**
+ * 判断是否为触控设备（手机/平板）
+ */
+export function isMobile() {
+  return 'ontouchstart' in window || navigator.maxTouchPoints > 0
+}
+
 // ─── 筛选 / 排序 ───
 
 /**

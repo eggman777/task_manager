@@ -1,12 +1,15 @@
 // 🎓 学习任务管理器 - 主控制器
 
 import { getAllTasks, createTask, updateTask, toggleTask, deleteTask } from './core/taskManager.js'
-import { searchTasks, sortTasks } from './core/utils.js'
+import { searchTasks, sortTasks, isMobile } from './core/utils.js'
 import { createTaskForm } from './components/TaskForm.js'
 import { createTaskList } from './components/TaskList.js'
 import { createFilterBar } from './components/FilterBar.js'
 import { createStatsBar } from './components/StatsBar.js'
 import { createConfirmDialog } from './components/ConfirmDialog.js'
+import { createFAB } from './components/FAB.js'
+import { createSwipeableTask, resetSwipes } from './components/SwipeableTask.js'
+import { showToast } from './components/Toast.js'
 import { PRESETS, applyAccent, saveAccent, loadAccent } from './core/theme.js'
 
 class App {
@@ -18,6 +21,7 @@ class App {
     this.theme = 'light'
     this.accent = '#C2673D'
     this.colorPickerOpen = false
+    this.undoStack = null // 用于撤销删除
   }
 
   init() {
@@ -34,8 +38,6 @@ class App {
       this.theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
     }
     document.documentElement.setAttribute('data-theme', this.theme)
-
-    // 主题色
     this.accent = loadAccent()
     applyAccent(this.accent, this.theme)
   }
@@ -53,8 +55,6 @@ class App {
     saveAccent(hex)
     this.colorPickerOpen = false
     this.render()
-
-    // 颜色切换后脉冲动画
     if (animate) {
       requestAnimationFrame(() => {
         const dot = document.querySelector('.color-dot')
@@ -84,12 +84,13 @@ class App {
     if (!appEl) return
 
     const displayTasks = this.getFilteredSortedTasks()
-
     const currentPresetName = PRESETS.find(p => p.hex.toLowerCase() === this.accent.toLowerCase())?.name || '自定'
+    const mobile = isMobile()
 
     appEl.innerHTML = `
       <header class="app-header">
         <div class="header-tools">
+          <button class="btn btn-primary ${mobile ? 'btn-sm' : ''}" data-action="new-task">📝 新建</button>
           <button class="theme-toggle" data-action="theme" title="切换深色模式">
             <span class="theme-icon">${this.theme === 'dark' ? '☀️' : '🌙'}</span>
           </button>
@@ -103,11 +104,6 @@ class App {
 
       <main class="app-main">
         <div data-region="stats"></div>
-        <div class="toolbar">
-          <div class="toolbar-left">
-            <button class="btn btn-primary" data-action="new-task">📝 新建任务</button>
-          </div>
-        </div>
         <div data-region="filter-bar"></div>
         <div data-region="task-list"></div>
       </main>
@@ -139,7 +135,7 @@ class App {
     // 主题切换
     appEl.querySelector('[data-action="theme"]').addEventListener('click', () => { this.toggleTheme(); this.render() })
 
-    // 颜色面板切换
+    // 颜色面板
     appEl.querySelector('[data-action="color"]').addEventListener('click', () => {
       this.colorPickerOpen = !this.colorPickerOpen
       this.render()
@@ -148,13 +144,9 @@ class App {
       this.colorPickerOpen = false
       this.render()
     })
-
-    // 预设色块点击
     appEl.querySelectorAll('.color-swatch').forEach(btn => {
       btn.addEventListener('click', () => this.setAccent(btn.dataset.color))
     })
-
-    // 自定义取色器
     const colorInput = appEl.querySelector('#custom-color')
     if (colorInput) {
       colorInput.addEventListener('input', (e) => {
@@ -190,6 +182,14 @@ class App {
         onEdit: task => this.handleEdit(task)
       }))
     }
+
+    // FAB（仅移动端 — 不在弹窗打开时显示）
+    document.querySelectorAll('.fab').forEach(el => el.remove())
+    if (mobile) {
+      const fab = createFAB(() => this.openNewTaskForm(null))
+      fab.id = 'app-fab'
+      appEl.appendChild(fab)
+    }
   }
 
   // ─── 事件处理 ───
@@ -207,16 +207,50 @@ class App {
   handleUpdate(id, data) { updateTask(id, data); this.tasks = getAllTasks(); this.render() }
   handleEdit(task) { this.openNewTaskForm(task) }
 
-  handleToggle(id) { toggleTask(id); this.tasks = getAllTasks(); this.render() }
+  handleToggle(id) {
+    toggleTask(id)
+    // 触觉反馈
+    if (isMobile() && navigator.vibrate) navigator.vibrate(8)
+    this.tasks = getAllTasks()
+    this.render()
+  }
 
   handleDelete(task) {
-    const dialog = createConfirmDialog({
-      title: '确认删除',
-      message: `确定要删除「${task.title}」吗？此操作不可撤销。`,
-      onConfirm: () => { deleteTask(task.id); this.tasks = getAllTasks(); this.render() },
-      onCancel: () => {}
-    })
-    document.body.appendChild(dialog)
+    const mobile = isMobile()
+
+    if (mobile) {
+      // 移动端用 toast 撤销
+      this.undoStack = { ...task }
+      deleteTask(task.id)
+      this.tasks = getAllTasks()
+      this.render()
+      if (navigator.vibrate) navigator.vibrate(10)
+
+      showToast('任务已删除', {
+        actionLabel: '撤销',
+        onAction: () => {
+          if (this.undoStack) {
+            createTask(this.undoStack)
+            this.tasks = getAllTasks()
+            this.render()
+            this.undoStack = null
+          }
+        }
+      })
+    } else {
+      // 桌面端用确认弹窗
+      const dialog = createConfirmDialog({
+        title: '确认删除',
+        message: `确定要删除「${task.title}」吗？`,
+        onConfirm: () => {
+          deleteTask(task.id)
+          this.tasks = getAllTasks()
+          this.render()
+        },
+        onCancel: () => {}
+      })
+      document.body.appendChild(dialog)
+    }
   }
 }
 
