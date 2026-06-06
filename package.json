@@ -1,0 +1,15 @@
+{
+  "name": "learning-task-manager",
+  "private": true,
+  "version": "1.0.0",
+  "description": "🎓 学习任务管理器 - 一个活泼友好的网页版学习任务管理小工具",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "vite": "^6.2.0"
+  }
+}
