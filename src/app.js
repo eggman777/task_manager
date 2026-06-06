@@ -314,15 +314,7 @@ class App {
     toggleTask(id)
     if (isMobile() && navigator.vibrate) navigator.vibrate(8)
     this.tasks = getAllTasks()
-
-    // 卡片离开动画后重新渲染
-    const card = document.querySelector(`.task-card[data-id="${id}"]`)
-    if (card) {
-      card.classList.add('task-leaving')
-      setTimeout(() => this.render(), 260)
-    } else {
-      this.render()
-    }
+    this.render()
   }
 
   handleDelete(task) {

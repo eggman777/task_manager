@@ -23,11 +23,10 @@
 }
 
 .header-tools {
-  position: absolute;
-  top: 0;
-  right: 0;
   display: flex;
   gap: var(--space-sm);
+  align-self: flex-end;
+  margin-bottom: var(--space-sm);
 }
 
 .app-title {
