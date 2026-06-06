@@ -1,33 +1,31 @@
 // 📋 任务卡片组件
-// 显示单个任务的完整信息
 
 import { getDeadlineStatus, getTaskCardStatusClass, getPriorityLabel } from '../core/utils.js'
 
-/**
- * 创建任务卡片
- * @param {object} task
- * @param {object} handlers
- * @param {Function} handlers.onToggle
- * @param {Function} handlers.onDelete
- * @param {Function} handlers.onEdit
- * @returns {HTMLElement}
- */
-export function createTaskItem(task, { onToggle, onDelete, onEdit }) {
+export function createTaskItem(task, { onToggle, onDelete, onEdit, onSelect, isSelectMode, isSelected }) {
   const deadlineInfo = getDeadlineStatus(task.deadline)
   const isCompleted = task.completed
+  const createdDate = formatCreatedDate(task.createdAt)
 
   const card = document.createElement('div')
   card.className = `task-card priority-${task.priority}`
+  card.setAttribute('data-id', task.id)
   if (isCompleted) card.classList.add('completed')
   if (!isCompleted) { const c = getTaskCardStatusClass(task); if (c) card.classList.add(c) }
+  if (isSelected) card.classList.add('selected-card')
+
+  // 多选模式单独画复选框，否则正常显示
+  const showToggle = !isSelectMode
+  const showSelect = isSelectMode
 
   card.innerHTML = `
     <div class="task-header">
-      <input type="checkbox" class="task-checkbox" ${isCompleted ? 'checked' : ''} data-action="toggle" />
       <div class="task-title-area">
         <div class="task-title">${escHtml(task.title)}</div>
         ${task.description ? `<p class="task-description">${escHtml(task.description)}</p>` : ''}
       </div>
+      ${showSelect ? `<input type="checkbox" class="task-checkbox" ${isSelected ? 'checked' : ''} data-action="select" />` : ''}
+      ${showToggle ? `<input type="checkbox" class="task-checkbox" ${isCompleted ? 'checked' : ''} data-action="toggle" />` : ''}
     </div>
 
     ${task.tags && task.tags.length > 0 ? `
@@ -38,19 +36,27 @@ export function createTaskItem(task, { onToggle, onDelete, onEdit }) {
     <div class="task-meta">
       <span class="priority-badge ${task.priority}">${getPriorityLabel(task.priority)}</span>
       ${deadlineInfo.label ? `<span class="task-deadline ${deadlineInfo.status !== 'normal' && deadlineInfo.status !== 'none' ? 'deadline-' + deadlineInfo.status : ''}">${deadlineInfo.label}</span>` : ''}
+      ${isCompleted ? `<span class="task-created-date">📅 ${createdDate}</span>` : ''}
     </div>
 
     <div class="task-actions">
-      <button class="btn btn-ghost btn-sm" data-action="edit">✏️ 编辑</button>
+      ${!isSelectMode ? '<button class="btn btn-ghost btn-sm" data-action="edit">✏️ 编辑</button>' : ''}
       <button class="btn btn-ghost btn-sm" data-action="delete">🗑️ 删除</button>
     </div>
   `
 
-  card.querySelector('[data-action="toggle"]').addEventListener('change', () => onToggle(task.id))
-  card.querySelector('[data-action="edit"]').addEventListener('click', () => onEdit(task))
+  card.querySelector('[data-action="toggle"]')?.addEventListener('change', () => onToggle(task.id))
+  card.querySelector('[data-action="select"]')?.addEventListener('change', () => onSelect(task.id))
   card.querySelector('[data-action="delete"]').addEventListener('click', () => onDelete(task))
+  card.querySelector('[data-action="edit"]')?.addEventListener('click', () => onEdit(task))
 
   return card
+}
+
+function formatCreatedDate(isoStr) {
+  if (!isoStr) return ''
+  const d = new Date(isoStr)
+  return `${d.getMonth() + 1}月${d.getDate()}日`
 }
 
 function escHtml(s) {

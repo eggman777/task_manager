@@ -249,9 +249,14 @@
 /* ─── Task Card Inner ─── */
 .task-header {
   display: flex;
+  flex-direction: row;
   align-items: flex-start;
   gap: var(--space-sm);
   margin-bottom: var(--space-sm);
+}
+
+.task-header .task-checkbox {
+  order: 1;
 }
 
 .task-checkbox {
@@ -277,10 +282,14 @@
   font-size: var(--font-size-base);
   font-weight: 600;
   color: var(--text);
-  word-break: break-word;
   line-height: 1.4;
   position: relative;
-  display: inline-block;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  word-break: break-word;
 }
 
 .task-description {
@@ -872,4 +881,67 @@
   border-radius: var(--radius-sm);
   cursor: pointer;
   background: var(--card);
+}
+
+/* ─── Batch Action Bar ─── */
+.batch-bar {
+  background: var(--card);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-lg);
+  padding: var(--space-sm) var(--space-md);
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  flex-wrap: wrap;
+  font-size: var(--font-size-sm);
+}
+
+.batch-select-all {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  cursor: pointer;
+  color: var(--text);
+  font-size: var(--font-size-sm);
+}
+
+.batch-checkbox {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--accent);
+}
+
+.batch-count {
+  flex: 1;
+  color: var(--text-secondary);
+  font-size: var(--font-size-sm);
+}
+
+.batch-mode-btn { margin-left: auto; }
+
+.batch-delete-btn { white-space: nowrap; }
+
+/* ─── Selected Card ─── */
+.task-card.selected-card {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent-bg), var(--shadow-sm);
+}
+
+/* ─── Screen Reader Only ─── */
+.sr-only {
+  position: absolute;
+  width: 1px; height: 1px;
+  padding: 0; margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
+}
+
+/* ─── Task Created Date ─── */
+.task-created-date {
+  font-size: var(--font-size-xs);
+  color: var(--text-dim);
+  display: flex;
+  align-items: center;
+  gap: 3px;
 }

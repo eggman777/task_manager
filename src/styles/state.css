@@ -111,6 +111,17 @@
   animation: checkPop 0.25s ease;
 }
 
+/* Task card leaving animation (on complete/delete) */
+@keyframes cardLeave {
+  from { opacity: 1; transform: translateX(0); }
+  to { opacity: 0; transform: translateX(40px); }
+}
+
+.task-card.task-leaving {
+  animation: cardLeave 0.25s ease forwards;
+  pointer-events: none;
+}
+
 /* ─── Stats bar progress ─── */
 .stats-progress-fill {
   animation: progressFill 0.8s var(--transition-slow) forwards;

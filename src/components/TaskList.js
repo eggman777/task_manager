@@ -1,29 +1,28 @@
 // 📋 任务列表组件
-// 渲染任务卡片列表或空状态（移动端带滑动操作）
 
 import { createTaskItem } from './TaskItem.js'
 import { createSwipeableTask } from './SwipeableTask.js'
 import { isMobile } from '../core/utils.js'
 
 /**
- * 创建任务列表
  * @param {object[]} tasks
  * @param {object} handlers
- * @param {Function} handlers.onToggle
- * @param {Function} handlers.onDelete
- * @param {Function} handlers.onEdit
- * @returns {HTMLElement}
+ * @param {string} [handlers.emptyFilter] - 当前筛选状态，用于空状态提示
  */
-export function createTaskList(tasks, { onToggle, onDelete, onEdit }) {
+export function createTaskList(tasks, { onToggle, onDelete, onEdit, isSelectMode, selectedIds, onSelect, emptyFilter }) {
   const container = document.createElement('div')
   container.className = 'task-list-container'
 
   if (!tasks || tasks.length === 0) {
+    const msg = emptyFilter === 'active'
+      ? '没有进行中的任务 ✅'
+      : emptyFilter === 'completed'
+        ? '还没有完成的任务 📝'
+        : '点击「新建」开始吧！🚀'
     container.innerHTML = `
       <div class="empty-state">
         <div class="empty-state-icon">🎉</div>
-        <h2 class="empty-state-title">还没有任务</h2>
-        <p class="empty-state-message">点击「新建」开始吧！</p>
+        <h2 class="empty-state-title">${msg}</h2>
       </div>
     `
     return container
@@ -32,11 +31,14 @@ export function createTaskList(tasks, { onToggle, onDelete, onEdit }) {
   const mobile = isMobile()
 
   tasks.forEach(task => {
-    const card = createTaskItem(task, { onToggle, onDelete, onEdit })
+    const card = createTaskItem(task, {
+      onToggle, onDelete, onEdit, onSelect,
+      isSelectMode: !!isSelectMode,
+      isSelected: selectedIds ? selectedIds.has(task.id) : false
+    })
 
-    if (mobile) {
-      const swipeable = createSwipeableTask(task, { onToggle, onDelete, onEdit }, card)
-      container.appendChild(swipeable)
+    if (mobile && !isSelectMode) {
+      container.appendChild(createSwipeableTask(task, { onToggle, onDelete, onEdit }, card))
     } else {
       container.appendChild(card)
     }

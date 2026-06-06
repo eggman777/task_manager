@@ -302,9 +302,15 @@
     height: 24px;
   }
 
-  .swatch-name {
-    font-size: 10px;
+  .swatch-name { font-size: 10px; }
+
+  .batch-bar {
+    padding: var(--space-sm);
+    gap: var(--space-sm);
+    font-size: var(--font-size-xs);
   }
+
+  .batch-bar .batch-count { font-size: var(--font-size-xs); }
 }
 
 /* ─── Install prompt ─── */
@@ -330,6 +336,25 @@
 .install-prompt-text {
   flex: 1;
   color: var(--text);
+}
+
+/* ─── Pull-to-Refresh ─── */
+.ptr-indicator {
+  text-align: center;
+  padding: 8px;
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ─── FAB bottom spacing ─── */
+#app {
+  padding-bottom: calc(var(--space-2xl) + 72px + env(safe-area-inset-bottom, 0px));
 }
 
 .install-prompt-btn {
