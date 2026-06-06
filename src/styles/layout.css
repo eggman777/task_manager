@@ -1,79 +1,104 @@
 /* ============================================
-   Page Layout
+   Layout — Refined & Spacious
    ============================================ */
 
 #app {
-  max-width: 720px;
+  max-width: 740px;
   margin: 0 auto;
-  padding: var(--space-lg);
-  padding-bottom: var(--space-2xl);
+  padding: var(--space-2xl) var(--space-lg);
+  padding-bottom: var(--space-3xl);
+  position: relative;
 }
 
-/* Header */
+/* ─── Header ─── */
 .app-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-bottom: var(--space-xl);
+  margin-bottom: var(--space-lg);
+  border-bottom: 1px solid var(--border-light);
   text-align: center;
-  padding: var(--space-xl) 0 var(--space-lg);
+  position: relative;
+}
+
+.app-header .theme-toggle {
+  position: absolute;
+  top: 0;
+  right: 0;
 }
 
 .app-title {
+  font-family: var(--font-heading);
   font-size: var(--font-size-2xl);
   font-weight: 700;
-  color: var(--color-primary);
+  color: var(--text);
+  letter-spacing: -0.02em;
+  line-height: 1.2;
   margin-bottom: var(--space-xs);
 }
 
 .app-subtitle {
   font-size: var(--font-size-sm);
-  color: var(--color-text-secondary);
+  color: var(--text-secondary);
+  font-weight: 400;
+  letter-spacing: 0.02em;
 }
 
-/* Main content area */
+/* ─── Main Content ─── */
 .app-main {
   display: flex;
   flex-direction: column;
   gap: var(--space-lg);
 }
 
-/* Toolbar */
+/* ─── Stats Bar ─── */
+.stats-bar-wrap {
+  margin-bottom: var(--space-sm);
+}
+
+/* ─── Toolbar ─── */
 .toolbar {
   display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-sm);
   align-items: center;
   justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-md);
 }
 
 .toolbar-left {
   display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-sm);
   align-items: center;
+  gap: var(--space-sm);
 }
 
 .toolbar-right {
   display: flex;
-  gap: var(--space-sm);
   align-items: center;
+  gap: var(--space-sm);
+  margin-left: auto;
 }
 
-/* Task list */
+/* ─── Task List ─── */
 .task-list-container {
   display: flex;
   flex-direction: column;
   gap: var(--space-md);
 }
 
-/* Empty state */
+/* ─── Empty State ─── */
 .empty-state {
   text-align: center;
-  padding: var(--space-2xl) var(--space-lg);
+  padding: var(--space-3xl) var(--space-lg);
 }
 
-/* Modal overlay */
+/* ─── Modal ─── */
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.4);
+  background: rgba(45, 42, 36, 0.45);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -81,39 +106,39 @@
   padding: var(--space-lg);
 }
 
+[data-theme="dark"] .modal-overlay {
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
 .modal-content {
-  background: var(--color-card);
-  border-radius: var(--radius-lg);
+  background: var(--card);
+  border-radius: var(--radius-xl);
   box-shadow: var(--shadow-lg);
   width: 100%;
   max-width: 520px;
   max-height: 90vh;
   overflow-y: auto;
-  padding: var(--space-lg);
+  padding: var(--space-xl);
+  border: 1px solid var(--border-light);
 }
 
-/* Responsive */
-@media (max-width: 600px) {
-  #app {
-    padding: var(--space-md);
-  }
+/* ─── Responsive ─── */
+@media (max-width: 640px) {
+  #app { padding: var(--space-lg) var(--space-md); }
 
-  .app-title {
-    font-size: var(--font-size-xl);
-  }
+  .app-title { font-size: var(--font-size-xl); }
 
   .toolbar {
     flex-direction: column;
     align-items: stretch;
   }
 
-  .toolbar-left,
-  .toolbar-right {
-    justify-content: center;
-  }
+  .toolbar-right { margin-left: 0; }
 
   .modal-content {
-    padding: var(--space-md);
-    border-radius: var(--radius-md);
+    padding: var(--space-lg);
+    border-radius: var(--radius-lg);
   }
 }

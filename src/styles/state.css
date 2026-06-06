@@ -1,82 +1,10 @@
 /* ============================================
-   State Styles - Status-based coloring
+   Animations & Motion
    ============================================ */
 
-/* ---------- Deadline states ---------- */
-.deadline-overdue {
-  color: var(--color-danger) !important;
-}
-
-.deadline-overdue .deadline-status {
-  color: var(--color-danger);
-}
-
-.deadline-today {
-  color: #EA580C !important;
-}
-
-.deadline-today .deadline-status {
-  color: #EA580C;
-}
-
-.deadline-soon {
-  color: var(--color-warning) !important;
-}
-
-.deadline-soon .deadline-status {
-  color: var(--color-warning);
-}
-
-/* Overdue tag on card */
-.task-card.overdue {
-  border-color: var(--color-danger);
-  background: linear-gradient(135deg, var(--color-card) 0%, var(--color-danger-bg) 100%);
-}
-
-.task-card.due-today {
-  border-color: #FDBA74;
-  background: linear-gradient(135deg, var(--color-card) 0%, #FFF7ED 100%);
-}
-
-.task-card.due-soon {
-  border-color: #FDE68A;
-  background: linear-gradient(135deg, var(--color-card) 0%, var(--color-warning-bg) 100%);
-}
-
-/* ---------- Priority badges ---------- */
-.priority-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 3px;
-  padding: 2px 8px;
-  border-radius: var(--radius-full);
-  font-size: var(--font-size-xs);
-  font-weight: 500;
-}
-
-.priority-badge.high {
-  background: var(--color-high-bg);
-  color: var(--color-high);
-}
-
-.priority-badge.medium {
-  background: var(--color-medium-bg);
-  color: var(--color-medium);
-}
-
-.priority-badge.low {
-  background: var(--color-low-bg);
-  color: var(--color-low);
-}
-
-/* ---------- Animations ---------- */
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(8px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes slideDown {
-  from { opacity: 0; transform: translateY(-12px); }
+/* ─── Keyframes ─── */
+@keyframes cardEntrance {
+  from { opacity: 0; transform: translateY(12px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
@@ -85,23 +13,84 @@
   to { opacity: 1; transform: scale(1); }
 }
 
-.task-card {
-  animation: fadeIn var(--transition-normal) ease forwards;
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
+@keyframes strikeThrough {
+  from { width: 0; }
+  to { width: 100%; }
+}
+
+@keyframes progressFill {
+  from { width: 0 !important; }
+}
+
+@keyframes checkPop {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.25); }
+  100% { transform: scale(1); }
+}
+
+/* ─── Entrance Animations ─── */
+
+/* Modal */
 .modal-overlay {
   animation: fadeIn var(--transition-fast) ease;
 }
 
 .modal-content {
-  animation: scaleIn var(--transition-normal) ease;
+  animation: scaleIn var(--transition-normal) var(--transition-fast) ease backwards;
 }
 
-/* Task completion animation */
-.task-card.just-completed .task-title {
-  transition: all var(--transition-normal);
+/* Staggered card entrance via JS-controlled animation-delay */
+.task-card {
+  animation: cardEntrance 0.35s ease forwards;
+  opacity: 0; /* hidden until animation plays */
 }
 
-.task-card.just-uncompleted .task-title {
-  transition: all var(--transition-normal);
+.task-card:nth-child(1) { animation-delay: 0.02s; }
+.task-card:nth-child(2) { animation-delay: 0.06s; }
+.task-card:nth-child(3) { animation-delay: 0.10s; }
+.task-card:nth-child(4) { animation-delay: 0.14s; }
+.task-card:nth-child(5) { animation-delay: 0.18s; }
+.task-card:nth-child(6) { animation-delay: 0.22s; }
+.task-card:nth-child(7) { animation-delay: 0.26s; }
+.task-card:nth-child(8) { animation-delay: 0.30s; }
+.task-card:nth-child(n+9) { animation-delay: 0.32s; }
+
+/* ─── Interactive ─── */
+
+/* Card lift on hover */
+.task-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md) !important;
+}
+
+/* Button press */
+.btn:active {
+  transform: scale(0.97);
+}
+
+/* Checkbox pop on toggle */
+.task-checkbox:checked {
+  animation: checkPop 0.25s ease;
+}
+
+/* ─── Stats bar progress ─── */
+.stats-progress-fill {
+  animation: progressFill 0.8s var(--transition-slow) forwards;
+}
+
+/* ─── Completion strikethrough ─── */
+.task-card.completed .task-title::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  height: 1.5px;
+  background: var(--text-dim);
+  animation: strikeThrough 0.35s ease forwards;
+  border-radius: 1px;
 }

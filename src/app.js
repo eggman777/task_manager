@@ -14,11 +14,31 @@ class App {
     this.filter = 'all'
     this.searchQuery = ''
     this.sortBy = 'deadline'
+    this.theme = 'light'
   }
 
   init() {
+    this.initTheme()
     this.tasks = getAllTasks()
     this.render()
+  }
+
+  initTheme() {
+    // 从 localStorage 读取用户偏好
+    const saved = localStorage.getItem('theme')
+    if (saved === 'dark' || saved === 'light') {
+      this.theme = saved
+    } else {
+      // 没有保存 → 跟随系统
+      this.theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+    }
+    document.documentElement.setAttribute('data-theme', this.theme)
+  }
+
+  toggleTheme() {
+    this.theme = this.theme === 'dark' ? 'light' : 'dark'
+    document.documentElement.setAttribute('data-theme', this.theme)
+    localStorage.setItem('theme', this.theme)
   }
 
   getFilteredSortedTasks() {
@@ -53,6 +73,9 @@ class App {
       <header class="app-header">
         <h1 class="app-title">🎓 学习任务管理器</h1>
         <p class="app-subtitle">轻松管理你的学习计划 ✨</p>
+        <button class="theme-toggle" data-action="theme" title="切换深色模式">
+          <span class="theme-icon">${this.theme === 'dark' ? '☀️' : '🌙'}</span>
+        </button>
       </header>
       <main class="app-main">
         <div data-region="stats"></div>
@@ -68,6 +91,10 @@ class App {
 
     // 新建任务
     appEl.querySelector('[data-action="new-task"]').addEventListener('click', () => this.openNewTaskForm(null))
+
+    // 主题切换
+    const themeBtn = appEl.querySelector('[data-action="theme"]')
+    if (themeBtn) themeBtn.addEventListener('click', () => { this.toggleTheme(); this.render() })
 
     // 统计栏
     const statsRegion = appEl.querySelector('[data-region="stats"]')
