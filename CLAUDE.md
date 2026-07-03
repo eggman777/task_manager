@@ -56,14 +56,16 @@ localStorage ←→ storage.js ←→ taskManager.js ←→ app.js → UI 组件
 ```
 App
 ├── StatsBar          ← tasks[] → 渲染统计 + 进度条
-├── FilterBar         ← filter/sort/search 状态 → 渲染筛选按钮 + 搜索框 + 排序下拉
+├── FilterBar         ← filter/sort/search/selectMode → 渲染筛选按钮、搜索框、排序下拉、多选入口
 ├── TaskList          ← tasks[] + handlers → 渲染列表
-│   ├── TaskItem[]    ← 单个任务卡片（桌面）
+│   ├── TaskItem[]    ← 单个任务卡片（支持多选选中态）
 │   └── SwipeableTask[] ← 包裹 TaskItem（移动端，带滑动手势）
 ├── TaskForm          ← 表单（桌面用 Modal，移动端用 Bottom Sheet）
-├── ConfirmDialog     ← 桌面端删除确认弹窗
-├── Toast             ← 移动端撤销删除通知
+├── Toast             ← 删除撤销通知（桌面+移动端统一使用，3秒自动消失）
 ├── FAB               ← 移动端右下角浮动新建按钮
+├── HeaderDropdown    ← ⚙️ 下拉菜单（主题切换 + 6色选择 + 导出/导入 JSON）
+├── SelectBottomBar   ← 多选模式底部操作栏（全选 / 删除 / 退出）
+└── ScrollTopBtn      ← 滚动超过一屏后显示的回顶按钮
 ```
 
 ### 数据模型
@@ -104,15 +106,15 @@ App
 |------|------|
 | `index.html` | HTML 入口，加载 Google Fonts + manifest |
 | `src/main.js` | 加载样式 + 注册 Service Worker |
-| `src/app.js` | 主控制器 ~320 行 |
+| `src/app.js` | 主控制器 ~360 行 |
 
 ### 核心逻辑
 | 文件 | 说明 |
 |------|------|
-| `src/core/storage.js` | localStorage 封装 |
+| `src/core/storage.js` | localStorage 封装 + 数据导出/导入 |
 | `src/core/taskManager.js` | 任务 CRUD |
 | `src/core/utils.js` | 日期解析、排序、搜索、isMobile |
-| `src/core/theme.js` | 主题色 + 衍生色计算 |
+| `src/core/theme.js` | 主题色 + 衍生色计算（6 色预设）|
 
 ### UI 组件
 | 文件 | 说明 |
@@ -122,8 +124,7 @@ App
 | `src/components/TaskList.js` | 任务列表 + 智能空状态 |
 | `src/components/FilterBar.js` | 筛选 + 搜索 + 排序（200ms debounce）|
 | `src/components/StatsBar.js` | 统计栏 + 进度条 |
-| `src/components/ConfirmDialog.js` | 确认弹窗 |
-| `src/components/Toast.js` | 撤销删除通知 |
+| `src/components/Toast.js` | 撤销删除通知（桌面+移动端统一使用）|
 | `src/components/FAB.js` | 浮动按钮（移动端）|
 | `src/components/SwipeableTask.js` | 滑动删除（移动端）|
 
@@ -146,4 +147,4 @@ App
 
 ## 项目状态
 
-当前为 **v0.7**，已完成全部预计划功能。可运行 `npm run build` 后部署到任意静态托管平台。
+当前为 **v0.8**，迭代内容包括：Header ⚙️ 下拉菜单（主题切换 + 6 色预设 + JSON 导出/导入）、统一 Toast 撤销删除、多选入口与底部操作栏、滚动回顶按钮。

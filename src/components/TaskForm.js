@@ -208,7 +208,17 @@ function wireFormLogic({ overlay, isEdit, parsed, initialTags, tagLabel, onSubmi
     })
   })
   customTagInput.addEventListener('keydown', e => {
-    if (e.key === 'Enter') { e.preventDefault(); const v = customTagInput.value.trim(); if (v && !getCurrentTags().some(x => tagLabel(x) === v)) { getCurrentTags().push(`🏷️ ${v}`); setCurrentTags(getCurrentTags()) } customTagInput.value = '' }
+    if (e.key === 'Enter') {
+      e.preventDefault()
+      e.stopPropagation()
+      const v = customTagInput.value.trim()
+      if (v && !getCurrentTags().some(x => tagLabel(x) === v)) {
+        const cur = getCurrentTags()
+        cur.push(`🏷️ ${v}`)
+        setCurrentTags(cur)
+      }
+      customTagInput.value = ''
+    }
   })
 
   function updateDeadline() {

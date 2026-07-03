@@ -8,14 +8,8 @@ export const PRESETS = [
   { name: '海蓝', hex: '#3B82F6' },
   { name: '松绿', hex: '#059669' },
   { name: '梅紫', hex: '#7C3AED' },
-  { name: '玫红', hex: '#E11D48' },
   { name: '琥珀', hex: '#D97706' },
-  { name: '青碧', hex: '#0D9488' },
-  { name: '靛蓝', hex: '#4F46E5' },
-  { name: '珊瑚', hex: '#F43F5E' },
-  { name: '薄荷', hex: '#10B981' },
-  { name: '岩灰', hex: '#64748B' },
-  { name: '暖橙', hex: '#EA580C' }
+  { name: '岩灰', hex: '#64748B' }
 ]
 
 /**

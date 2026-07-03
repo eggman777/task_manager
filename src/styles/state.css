@@ -3,11 +3,6 @@
    ============================================ */
 
 /* ─── Keyframes ─── */
-@keyframes cardEntrance {
-  from { opacity: 0; transform: translateY(12px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
 @keyframes scaleIn {
   from { opacity: 0; transform: scale(0.95); }
   to { opacity: 1; transform: scale(1); }
@@ -16,11 +11,6 @@
 @keyframes fadeIn {
   from { opacity: 0; }
   to { opacity: 1; }
-}
-
-@keyframes strikeThrough {
-  from { width: 0; }
-  to { width: 100%; }
 }
 
 @keyframes progressFill {
@@ -45,25 +35,12 @@
 .filter-btn.active,
 .quick-btn.active,
 .priority-option.selected,
-.task-card::before,
 .stats-progress-fill,
-.color-dot,
-.priority-badge.high,
-.task-card.priority-high::before {
+.priority-badge.high {
   transition: background 0.4s cubic-bezier(0.22, 1, 0.36, 1),
               color 0.4s cubic-bezier(0.22, 1, 0.36, 1),
               border-color 0.4s cubic-bezier(0.22, 1, 0.36, 1),
               box-shadow 0.4s cubic-bezier(0.22, 1, 0.36, 1) !important;
-}
-
-/* Color dot micro-pulse on theme change */
-.color-dot.animating {
-  animation: colorPulse 0.4s cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-/* Color picker panel entrance */
-.color-picker-panel {
-  animation: scaleIn 0.25s cubic-bezier(0.22, 1, 0.36, 1) ease;
 }
 
 /* ─── Entrance Animations ─── */
@@ -76,22 +53,6 @@
 .modal-content {
   animation: scaleIn var(--transition-normal) var(--transition-fast) ease backwards;
 }
-
-/* Staggered card entrance via JS-controlled animation-delay */
-.task-card {
-  animation: cardEntrance 0.35s ease forwards;
-  opacity: 0; /* hidden until animation plays */
-}
-
-.task-card:nth-child(1) { animation-delay: 0.02s; }
-.task-card:nth-child(2) { animation-delay: 0.06s; }
-.task-card:nth-child(3) { animation-delay: 0.10s; }
-.task-card:nth-child(4) { animation-delay: 0.14s; }
-.task-card:nth-child(5) { animation-delay: 0.18s; }
-.task-card:nth-child(6) { animation-delay: 0.22s; }
-.task-card:nth-child(7) { animation-delay: 0.26s; }
-.task-card:nth-child(8) { animation-delay: 0.30s; }
-.task-card:nth-child(n+9) { animation-delay: 0.32s; }
 
 /* ─── Interactive ─── */
 
@@ -116,14 +77,4 @@
   animation: progressFill 0.8s var(--transition-slow) forwards;
 }
 
-/* ─── Completion strikethrough ─── */
-.task-card.completed .task-title::after {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 50%;
-  height: 1.5px;
-  background: var(--text-dim);
-  animation: strikeThrough 0.35s ease forwards;
-  border-radius: 1px;
-}
+/* ─── Completion feedback ─── */

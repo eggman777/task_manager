@@ -1,13 +1,12 @@
 // 🎓 学习任务管理器 - 主控制器
 
 import { getAllTasks, createTask, updateTask, toggleTask, deleteTask } from './core/taskManager.js'
-import { saveTasks } from './core/storage.js'
+import { saveTasks, exportTasks, importTasks } from './core/storage.js'
 import { searchTasks, sortTasks, isMobile } from './core/utils.js'
 import { createTaskForm } from './components/TaskForm.js'
 import { createTaskList } from './components/TaskList.js'
 import { createFilterBar } from './components/FilterBar.js'
 import { createStatsBar } from './components/StatsBar.js'
-import { createConfirmDialog } from './components/ConfirmDialog.js'
 import { createFAB } from './components/FAB.js'
 import { showToast } from './components/Toast.js'
 import { PRESETS, applyAccent, saveAccent, loadAccent } from './core/theme.js'
@@ -20,7 +19,7 @@ class App {
     this.sortBy = 'deadline'
     this.theme = 'light'
     this.accent = '#C2673D'
-    this.colorPickerOpen = false
+    this.menuOpen = false
     this.undoStack = null
     this.selectMode = false
     this.selectedIds = new Set()
@@ -50,7 +49,6 @@ class App {
 
   // ━━━ 数据双保险 ━━━
   setupDataGuard() {
-    // 切后台 / 关标签页时保存
     document.addEventListener('visibilitychange', () => {
       if (document.hidden) saveTasks(this.tasks)
     })
@@ -101,7 +99,7 @@ class App {
   // ━━━ 点击空白收起键盘 ━━━
   setupKeyboardDismiss() {
     document.addEventListener('click', e => {
-      if (!e.target.closest('input, textarea')) {
+      if (!e.target.closest('input, textarea, select')) {
         document.activeElement?.blur()
       }
     })
@@ -133,23 +131,14 @@ class App {
     document.documentElement.setAttribute('data-theme', this.theme)
     localStorage.setItem('theme', this.theme)
     applyAccent(this.accent, this.theme)
+    this.render()
   }
 
-  setAccent(hex, animate = true) {
+  setAccent(hex) {
     this.accent = hex
     applyAccent(hex, this.theme)
     saveAccent(hex)
-    this.colorPickerOpen = false
     this.render()
-    if (animate) {
-      requestAnimationFrame(() => {
-        const dot = document.querySelector('.color-dot')
-        if (dot) {
-          dot.classList.add('animating')
-          dot.addEventListener('animationend', () => dot.classList.remove('animating'), { once: true })
-        }
-      })
-    }
   }
 
   getFilteredSortedTasks() {
@@ -170,19 +159,38 @@ class App {
     if (!appEl) return
 
     const displayTasks = this.getFilteredSortedTasks()
-    const presetName = PRESETS.find(p => p.hex.toLowerCase() === this.accent.toLowerCase())?.name || '自定'
     const mobile = isMobile()
+
+    // ───── 清除旧的菜单外点击监听 ─────
+    if (this._closeHandler) {
+      document.removeEventListener('click', this._closeHandler)
+      this._closeHandler = null
+    }
 
     appEl.innerHTML = `
       <header class="app-header">
         <div class="header-tools">
           ${mobile ? '' : '<button class="btn btn-primary btn-sm" data-action="new-task">📝 新建</button>'}
-          <button class="theme-toggle" data-action="theme" title="切换深色模式">
-            <span class="theme-icon">${this.theme === 'dark' ? '☀️' : '🌙'}</span>
-          </button>
-          <button class="color-toggle" data-action="color" title="主题色 · ${presetName}">
-            <span class="color-dot" style="background:${this.accent}"></span>
-          </button>
+          <div class="header-menu-trigger">
+            <button class="menu-toggle-btn" data-action="menu-toggle" title="设置">⚙️</button>
+            <div class="header-dropdown" id="header-menu" style="display:${this.menuOpen ? 'block' : 'none'}">
+              <div class="dropdown-item" data-action="theme">
+                <span>${this.theme === 'dark' ? '☀️' : '🌙'}</span>
+                <span>${this.theme === 'dark' ? '浅色模式' : '深色模式'}</span>
+              </div>
+              <div class="dropdown-section">🎨 主题色</div>
+              <div class="dropdown-colors">
+                ${PRESETS.map(p => `
+                  <button class="dd-color-swatch ${p.hex.toLowerCase() === this.accent.toLowerCase() ? 'active' : ''}" data-color="${p.hex}" title="${p.name}">
+                    <span class="dd-swatch-fill" style="background:${p.hex}"></span>
+                  </button>
+                `).join('')}
+              </div>
+              <div class="dropdown-divider"></div>
+              <div class="dropdown-item" data-action="export">📤 导出数据（JSON）</div>
+              <div class="dropdown-item" data-action="import">📥 导入数据（JSON）</div>
+            </div>
+          </div>
         </div>
         <h1 class="app-title">🎓 学习任务管理器</h1>
         <p class="app-subtitle">轻松管理你的学习计划 ✨</p>
@@ -190,55 +198,87 @@ class App {
 
       <main class="app-main">
         <div data-region="stats"></div>
-        ${this.filter === 'completed' ? `
-        <div class="batch-bar">
-          <label class="batch-select-all"><input type="checkbox" class="batch-checkbox" data-action="select-all" ${this.selectMode && this.selectedIds.size === displayTasks.length && displayTasks.length > 0 ? 'checked' : ''} /> 全选</label>
-          <span class="batch-count">
-            ${this.selectMode ? `已选 ${this.selectedIds.size}/${displayTasks.length}` : '多选模式'}
-          </span>
-          ${this.selectMode ? '<button class="btn btn-danger btn-sm batch-delete-btn">🗑️ 删除已选</button>' : ''}
-          <button class="btn btn-ghost btn-sm batch-mode-btn">${this.selectMode ? '退出多选' : '☑ 批量操作'}</button>
-        </div>` : ''}
         <div data-region="filter-bar"></div>
         <div data-region="task-list"></div>
       </main>
 
-      <div class="color-picker-panel" id="color-panel" style="display:${this.colorPickerOpen ? 'block' : 'none'}">
-        <div class="color-picker-header"><span>🎨 主题色</span><button class="form-modal-close" data-action="close-color">&times;</button></div>
-        <div class="color-presets">
-          ${PRESETS.map(p => `<button class="color-swatch ${p.hex.toLowerCase() === this.accent.toLowerCase() ? 'active' : ''}" data-color="${p.hex}" title="${p.name}"><span class="swatch-fill" style="background:${p.hex}"></span><span class="swatch-name">${p.name}</span></button>`).join('')}
-        </div>
-        <div class="color-custom"><label class="color-custom-label">自定义</label><input type="color" class="color-picker-input" id="custom-color" value="${this.accent}" /></div>
-      </div>
+      ${this.selectMode ? `
+      <div class="select-bottom-bar">
+        <label class="select-all-label">
+          <input type="checkbox" class="select-all-checkbox" data-action="select-all-bottom" ${displayTasks.length > 0 && this.selectedIds.size === displayTasks.length ? 'checked' : ''} />
+          全选
+        </label>
+        <span class="select-count">已选 ${this.selectedIds.size}/${displayTasks.length}</span>
+        <button class="btn btn-danger btn-sm" data-action="delete-selected">🗑️ 删除</button>
+        <button class="btn btn-ghost btn-sm" data-action="exit-select">✕ 退出</button>
+      </div>` : ''}
+
+      <button class="scroll-top-btn" id="scroll-top-btn" style="display:none" title="回顶部">⬆</button>
     `
 
-    // 事件绑定（部分元素移动端不存在，用 ?. 安全取）
+    // ━━━ 事件绑定 ━━━
     appEl.querySelector('[data-action="new-task"]')?.addEventListener('click', () => this.openNewTaskForm(null))
-    appEl.querySelector('[data-action="theme"]')?.addEventListener('click', () => { this.toggleTheme(); this.render() })
-    appEl.querySelector('[data-action="color"]')?.addEventListener('click', () => { this.colorPickerOpen = !this.colorPickerOpen; this.render() })
-    appEl.querySelector('[data-action="close-color"]')?.addEventListener('click', () => { this.colorPickerOpen = false; this.render() })
-    appEl.querySelectorAll('.color-swatch').forEach(btn => btn.addEventListener('click', () => this.setAccent(btn.dataset.color)))
-    const colorInput = appEl.querySelector('#custom-color')
-    if (colorInput) colorInput.addEventListener('input', e => { applyAccent(e.target.value, this.theme); saveAccent(e.target.value); this.accent = e.target.value })
 
-    // 批量操作
-    appEl.querySelector('[data-action="select-all"]')?.addEventListener('change', e => {
+    // 下拉菜单 — 切换
+    appEl.querySelector('[data-action="menu-toggle"]')?.addEventListener('click', (e) => {
+      e.stopPropagation()
+      this.menuOpen = !this.menuOpen
+      this.render()
+    })
+
+    // 下拉菜单 — 点击外部关闭
+    if (this.menuOpen) {
+      this._closeHandler = (e) => {
+        if (!e.target.closest('.header-menu-trigger')) {
+          this.menuOpen = false
+          this.render()
+        }
+      }
+      setTimeout(() => document.addEventListener('click', this._closeHandler), 0)
+    }
+
+    // 菜单项
+    appEl.querySelector('[data-action="theme"]')?.addEventListener('click', () => { this.menuOpen = false; this.toggleTheme() })
+    appEl.querySelectorAll('.dd-color-swatch').forEach(btn => {
+      btn.addEventListener('click', () => { this.menuOpen = false; this.setAccent(btn.dataset.color) })
+    })
+    appEl.querySelector('[data-action="export"]')?.addEventListener('click', () => {
+      this.menuOpen = false
+      this.render()
+      exportTasks(this.tasks)
+    })
+    appEl.querySelector('[data-action="import"]')?.addEventListener('click', () => {
+      this.menuOpen = false
+      this.render()
+      importTasks().then(imported => {
+        if (!imported) return
+        const overwrite = confirm(`导入 ${imported.length} 个任务？\n「确定」覆盖现有数据\n「取消」合并追加`)
+        if (overwrite) {
+          this.tasks = imported
+        } else {
+          this.tasks.push(...imported)
+        }
+        saveTasks(this.tasks)
+        this.tasks = getAllTasks()
+        this.render()
+        showToast(`已导入 ${imported.length} 个任务`)
+      })
+    })
+
+    // 多选底部栏
+    appEl.querySelector('[data-action="select-all-bottom"]')?.addEventListener('change', e => {
       if (e.target.checked) { displayTasks.forEach(t => this.selectedIds.add(t.id)) }
       else { this.selectedIds.clear() }
       this.render()
     })
-    appEl.querySelector('.batch-mode-btn')?.addEventListener('click', () => {
-      this.selectMode = !this.selectMode
-      if (!this.selectMode) this.selectedIds.clear()
-      this.render()
-    })
-    appEl.querySelector('.batch-delete-btn')?.addEventListener('click', () => {
+    appEl.querySelector('[data-action="delete-selected"]')?.addEventListener('click', () => {
       if (this.selectedIds.size === 0) return
       const deleted = this.tasks.filter(t => this.selectedIds.has(t.id))
       const ids = [...this.selectedIds]
       ids.forEach(id => deleteTask(id))
       const count = ids.length
       this.selectedIds.clear()
+      this.selectMode = false
       this.tasks = getAllTasks()
       this.render()
       showToast(`已删除 ${count} 个任务`, {
@@ -249,6 +289,11 @@ class App {
           this.render()
         }
       })
+    })
+    appEl.querySelector('[data-action="exit-select"]')?.addEventListener('click', () => {
+      this.selectMode = false
+      this.selectedIds.clear()
+      this.render()
     })
 
     // 统计栏
@@ -264,7 +309,13 @@ class App {
         searchQuery: this.searchQuery,
         onFilterChange: f => { this.filter = f; this.selectMode = false; this.selectedIds.clear(); this.render() },
         onSortChange: s => { this.sortBy = s; this.render() },
-        onSearchChange: q => { this.searchQuery = q; this.render() }
+        onSearchChange: q => { this.searchQuery = q; this.render() },
+        selectMode: this.selectMode,
+        onToggleSelect: () => {
+          this.selectMode = !this.selectMode
+          if (!this.selectMode) this.selectedIds.clear()
+          this.render()
+        }
       }))
     }
 
@@ -293,6 +344,22 @@ class App {
       fab.id = 'app-fab'
       appEl.appendChild(fab)
     }
+
+    // 滚动回顶
+    this.setupScrollTop()
+  }
+
+  // ━━━ 滚动回顶 ━━━
+  setupScrollTop() {
+    const btn = document.querySelector('#scroll-top-btn')
+    if (!btn) return
+    const handleScroll = () => {
+      btn.style.display = document.documentElement.scrollTop > 300 ? 'flex' : 'none'
+    }
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    btn.addEventListener('click', () => {
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+    })
   }
 
   // ─── 事件处理 ───
@@ -318,25 +385,22 @@ class App {
   }
 
   handleDelete(task) {
-    const mobile = isMobile()
-    if (mobile) {
-      this.undoStack = { ...task }
-      deleteTask(task.id)
-      this.tasks = getAllTasks()
-      this.render()
-      if (navigator.vibrate) navigator.vibrate(10)
-      showToast('任务已删除', {
-        actionLabel: '撤销',
-        onAction: () => { if (this.undoStack) { createTask(this.undoStack); this.tasks = getAllTasks(); this.render(); this.undoStack = null } }
-      })
-    } else {
-      const dialog = createConfirmDialog({
-        title: '确认删除', message: `确定要删除「${task.title}」吗？`,
-        onConfirm: () => { deleteTask(task.id); this.tasks = getAllTasks(); this.render() },
-        onCancel: () => {}
-      })
-      document.body.appendChild(dialog)
-    }
+    this.undoStack = { ...task }
+    deleteTask(task.id)
+    this.tasks = getAllTasks()
+    this.render()
+    if (navigator.vibrate) navigator.vibrate(10)
+    showToast('任务已删除', {
+      actionLabel: '撤销',
+      onAction: () => {
+        if (this.undoStack) {
+          createTask(this.undoStack)
+          this.tasks = getAllTasks()
+          this.render()
+          this.undoStack = null
+        }
+      }
+    })
   }
 }
 

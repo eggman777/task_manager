@@ -12,7 +12,7 @@
  * @param {Function} options.onSearchChange
  * @returns {HTMLElement}
  */
-export function createFilterBar({ currentFilter, currentSort, searchQuery, onFilterChange, onSortChange, onSearchChange }) {
+export function createFilterBar({ currentFilter, currentSort, searchQuery, onFilterChange, onSortChange, onSearchChange, selectMode, onToggleSelect }) {
   const filters = [
     { key: 'all', label: '📋 全部' },
     { key: 'active', label: '🔄 进行中' },
@@ -35,6 +35,7 @@ export function createFilterBar({ currentFilter, currentSort, searchQuery, onFil
           `<button class="filter-btn ${f.key === currentFilter ? 'active' : ''}" data-filter="${f.key}">${f.label}</button>`
         ).join('')}
       </div>
+      <button class="multi-select-btn ${selectMode ? 'active' : ''}" data-action="multi-select" title="多选">☑</button>
     </div>
     <div class="toolbar-right">
       <input class="search-input" type="text" placeholder="🔍 搜索任务..." value="${escHtml(searchQuery)}" data-action="search" />
@@ -50,6 +51,9 @@ export function createFilterBar({ currentFilter, currentSort, searchQuery, onFil
   bar.querySelectorAll('.filter-btn').forEach(btn => {
     btn.addEventListener('click', () => onFilterChange(btn.dataset.filter))
   })
+
+  // 多选按钮
+  bar.querySelector('[data-action="multi-select"]')?.addEventListener('click', onToggleSelect)
 
   // 搜索（带 debounce）
   const searchInput = bar.querySelector('[data-action="search"]')

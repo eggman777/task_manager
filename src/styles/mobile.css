@@ -4,9 +4,9 @@
 
 /* ─── Touch target sizing ─── */
 @media (pointer: coarse) {
-  .btn, .filter-btn, .quick-btn, .theme-toggle, .color-toggle,
-  .color-swatch, .tag-preset-btn, .tag-chip-remove,
-  .form-modal-close, .confirm-btn-cancel, .confirm-btn-delete {
+  .btn, .filter-btn, .quick-btn, .menu-toggle-btn, .multi-select-btn,
+  .dd-color-swatch, .tag-preset-btn, .tag-chip-remove,
+  .form-modal-close, .scroll-top-btn, .select-all-label {
     min-height: 44px;
     min-width: 44px;
   }
@@ -283,34 +283,14 @@
     gap: 8px;
   }
 
-  .color-picker-panel {
-    margin-top: var(--space-sm);
-    padding: var(--space-md);
-  }
-
-  .color-presets {
-    gap: 4px;
-  }
-
-  .color-swatch {
-    min-width: 48px;
-    padding: 6px;
-  }
-
-  .swatch-fill {
-    width: 24px;
-    height: 24px;
-  }
-
-  .swatch-name { font-size: 10px; }
-
-  .batch-bar {
-    padding: var(--space-sm);
+  .select-bottom-bar {
+    padding: var(--space-xs) var(--space-md);
+    padding-bottom: calc(var(--space-xs) + env(safe-area-inset-bottom, 0px));
     gap: var(--space-sm);
     font-size: var(--font-size-xs);
   }
 
-  .batch-bar .batch-count { font-size: var(--font-size-xs); }
+  .select-bottom-bar .btn { font-size: var(--font-size-xs); }
 }
 
 /* ─── Install prompt ─── */
