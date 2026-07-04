@@ -1,4 +1,4 @@
-const CACHE = 'task-v3'
+const CACHE = 'task-v4'
 
 // Install: 立刻接管，不等待旧 SW 释放
 self.addEventListener('install', () => {
@@ -15,20 +15,25 @@ self.addEventListener('activate', (e) => {
   self.clients.claim()
 })
 
-// Cache-First：缓存命中→瞬间返回，网络请求→后台静默缓存
+// Stale-While-Revalidate：先给缓存（秒开），同时后台拉新版本更新缓存
 self.addEventListener('fetch', (e) => {
   if (!e.request.url.startsWith('http')) return
 
   e.respondWith(
-    caches.match(e.request).then(cached => {
-      if (cached) return cached
+    caches.open(CACHE).then(cache =>
+      cache.match(e.request).then(cached => {
+        // 后台发起网络请求更新缓存
+        const fetchPromise = fetch(e.request).then(res => {
+          if (res.ok && res.type === 'basic') {
+            cache.put(e.request, res.clone())
+          }
+          return res.clone()
+        }).catch(() => null)
 
-      return fetch(e.request).then(res => {
-        if (res.ok && res.type === 'basic') {
-          caches.open(CACHE).then(c => c.put(e.request, res.clone()))
-        }
-        return res.clone()
+        // 缓存命中 → 先返回缓存，后台静默更新
+        // 缓存未命中 → 等网络请求
+        return cached || fetchPromise
       })
-    })
+    )
   )
 })
