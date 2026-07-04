@@ -19,9 +19,11 @@ export function createSwipeableTask(task, handlers, card) {
   const container = document.createElement('div')
   container.className = 'swipe-container'
 
-  // 左滑显示的删除按钮
+  // 左滑显示的删除按钮（默认隐藏，仅滑动时显示）
   const actions = document.createElement('div')
   actions.className = 'swipe-actions'
+  actions.style.opacity = '0'
+  actions.style.transition = 'opacity 0.15s ease'
   actions.innerHTML = `
     <button class="swipe-action-btn delete">🗑️ 删除</button>
   `
@@ -60,11 +62,14 @@ export function createSwipeableTask(task, handlers, card) {
     isDragging = true
     currentX = dx
 
-    // 左滑显示删除按钮，右滑不做偏移（完成用复选框）
+    // Show delete button as soon as user starts swiping left
     if (dx < 0) {
+      actions.style.opacity = '1'
       const offset = Math.max(dx, -80)
       content.style.transform = `translateX(${offset}px)`
       content.style.transition = 'none'
+    } else {
+      actions.style.opacity = '0'
     }
   }
 
@@ -74,11 +79,13 @@ export function createSwipeableTask(task, handlers, card) {
     content.style.transition = ''
 
     if (currentX < -SWIPE_THRESHOLD) {
-      // 左滑到底 → 删除按钮完全展开
+      // Snap open: keep delete button visible
       content.style.transform = `translateX(-80px)`
+      actions.style.opacity = '1'
     } else {
-      // 回弹
+      // Snap shut: hide delete button
       content.style.transform = ''
+      actions.style.opacity = '0'
     }
 
     isDragging = false

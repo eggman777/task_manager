@@ -5,6 +5,40 @@ import { getTodayDateStr, getTomorrowDateStr, pad, isMobile } from '../core/util
 
 const PRESET_TAGS = ['🏫 课堂', '💻 编程', '📚 阅读', '📝 作业', '📖 复习']
 
+/**
+ * 拦截系统返回键/侧滑手势，关闭表单而非退出页面
+ * 返回 closeForm 函数供所有关闭路径使用
+ */
+function setupHistoryTrap(overlay, onCancel) {
+  let closed = false
+  let escHandler = null
+
+  function handlePopState() {
+    if (closed) return
+    closed = true
+    window.removeEventListener('popstate', handlePopState)
+    if (escHandler) document.removeEventListener('keydown', escHandler)
+    overlay.remove()
+    onCancel?.()
+  }
+
+  // 推入虚拟历史状态，让返回键"有东西可回"
+  window.history.pushState({ formOpen: true }, '', window.location.href)
+  window.addEventListener('popstate', handlePopState)
+
+  // 返回手动关闭函数（取消按钮/遮罩/Esc/提交成功调用）
+  return function closeForm() {
+    if (closed) return
+    closed = true
+    // 先移除监听，再 history.back()，避免 back 触发 popstate 循环
+    window.removeEventListener('popstate', handlePopState)
+    if (escHandler) document.removeEventListener('keydown', escHandler)
+    overlay.remove()
+    onCancel?.()
+    window.history.back()
+  }
+}
+
 export function createTaskForm({ task, onSubmit, onCancel }) {
   const isEdit = !!task
   const mobile = isMobile()
@@ -29,7 +63,8 @@ function createModal({ task, isEdit, parsed, initialTags, tagLabel, onSubmit, on
   const overlay = document.createElement('div')
   overlay.className = 'modal-overlay'
   overlay.innerHTML = buildFormHTML({ isEdit, task, parsed, initialTags, tagLabel })
-  wireFormLogic({ overlay, task, isEdit, parsed, initialTags, tagLabel, onSubmit, onCancel })
+  const closeForm = setupHistoryTrap(overlay, onCancel)
+  wireFormLogic({ overlay, task, isEdit, parsed, initialTags, tagLabel, onSubmit, onCancel, closeForm })
   return overlay
 }
 
@@ -48,12 +83,14 @@ function createBottomSheet({ task, isEdit, parsed, initialTags, tagLabel, onSubm
     </div>
   `
 
+  const closeForm = setupHistoryTrap(overlay, onCancel)
+
   const sheet = overlay.querySelector('.bottom-sheet')
 
   // 下滑关闭
   let startY = 0, dragging = false
   sheet.addEventListener('touchstart', e => {
-    if (sheet.scrollTop > 0) return // 只在顶部才响应下滑
+    if (sheet.scrollTop > 0) return
     startY = e.touches[0].clientY
     dragging = true
     sheet.classList.add('dragging')
@@ -70,13 +107,14 @@ function createBottomSheet({ task, isEdit, parsed, initialTags, tagLabel, onSubm
     dragging = false
     sheet.classList.remove('dragging')
     const currentY = parseFloat(sheet.style.transform.match(/[\d.]+/)?.[0] || 0)
-    if (currentY > 100) { overlay.remove(); onCancel?.() }
+    if (currentY > 100) { closeForm() }
     else sheet.style.transform = ''
   })
 
-  overlay.addEventListener('click', e => { if (e.target === overlay) { overlay.remove(); onCancel?.() } })
+  // 点击遮罩关闭
+  overlay.addEventListener('click', e => { if (e.target === overlay) closeForm() })
 
-  wireFormLogic({ overlay, task, isEdit, parsed, initialTags, tagLabel, onSubmit, onCancel, isBottomSheet: true })
+  wireFormLogic({ overlay, task, isEdit, parsed, initialTags, tagLabel, onSubmit, onCancel, closeForm, isBottomSheet: true })
   return overlay
 }
 
@@ -154,7 +192,7 @@ function buildFormHTML({ isEdit, task, parsed, initialTags, tagLabel }) {
 // Shared Form Logic
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-function wireFormLogic({ overlay, isEdit, parsed, initialTags, tagLabel, onSubmit, onCancel, isBottomSheet }) {
+function wireFormLogic({ overlay, isEdit, parsed, initialTags, tagLabel, onSubmit, onCancel, closeForm, isBottomSheet }) {
   const form = overlay.querySelector('[data-action="form"]')
   const monthSelect = overlay.querySelector('#dl-month')
   const daySelect = overlay.querySelector('#dl-day')
@@ -241,15 +279,15 @@ function wireFormLogic({ overlay, isEdit, parsed, initialTags, tagLabel, onSubmi
     const title = fd.get('title').trim()
     if (!title) return
     onSubmit({ title, description: fd.get('description')?.trim() || '', priority: fd.get('priority') || 'medium', tags: getCurrentTags(), deadline: hiddenDeadline.value || null })
-    overlay.remove()
+    closeForm()
   })
 
-  overlay.querySelector('[data-action="close"]').addEventListener('click', () => { overlay.remove(); onCancel?.() })
-  overlay.querySelector('[data-action="cancel"]').addEventListener('click', () => { overlay.remove(); onCancel?.() })
+  overlay.querySelector('[data-action="close"]').addEventListener('click', () => closeForm())
+  overlay.querySelector('[data-action="cancel"]').addEventListener('click', () => closeForm())
   if (!isBottomSheet) {
-    overlay.addEventListener('click', e => { if (e.target === overlay) { overlay.remove(); onCancel?.() } })
+    overlay.addEventListener('click', e => { if (e.target === overlay) closeForm() })
   }
-  const esc = e => { if (e.key === 'Escape') { overlay.remove(); document.removeEventListener('keydown', esc); onCancel?.() } }
+  const esc = e => { if (e.key === 'Escape') { document.removeEventListener('keydown', esc); closeForm() } }
   document.addEventListener('keydown', esc)
 }
 

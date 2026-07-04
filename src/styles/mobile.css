@@ -193,6 +193,7 @@
   position: relative;
   z-index: 2;
   background: var(--card);
+  border-radius: var(--radius-xl);
   transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1);
   will-change: transform;
 }
@@ -260,6 +261,17 @@
   .toolbar {
     flex-direction: column;
     gap: var(--space-sm);
+  }
+
+  /* 筛选按钮强制单行（窄屏适配）*/
+  .filter-bar {
+    flex-wrap: nowrap;
+    gap: 4px;
+  }
+
+  .filter-btn {
+    padding: 8px 10px;
+    font-size: 13px;
   }
 
   .toolbar-right {
