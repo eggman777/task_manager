@@ -135,6 +135,21 @@
   margin-top: 2px;
 }
 
+/* ─── Sparkline 微图表（纯曲线暗示数据流动感）─── */
+.sparkline {
+  display: block;
+  margin: 2px auto 0;
+  flex-shrink: 0;
+}
+
+.sparkline path {
+  stroke: var(--accent);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  fill: none;
+}
+
 /* ─── Task Form ─── */
 .task-form {
   display: flex;
@@ -181,7 +196,7 @@
   padding: var(--space-lg);
   box-shadow: var(--shadow-sm);
   border: 1px solid var(--border-light);
-  transition: box-shadow var(--transition-normal), transform var(--transition-normal);
+  transition: box-shadow var(--transition-normal), transform var(--transition-spring);
   position: relative;
 }
 
@@ -191,7 +206,20 @@
   transform: translateY(-1px);
 }
 
-/* Priority indicator removed — badge in meta row suffices */
+/* Priority color strip on left card edge — ::before 实现，不用 transform 避免渲染问题 */
+.task-card::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: calc(50% - 18px);
+  width: 4px;
+  height: 36px;
+  border-radius: 0 2px 2px 0;
+}
+
+.task-card.priority-high::before  { background: var(--color-high); }
+.task-card.priority-medium::before{ background: var(--color-medium); }
+.task-card.priority-low::before   { background: var(--color-low); }
 
 /* Completed state */
 .task-card.completed {
@@ -304,22 +332,18 @@
   margin-top: var(--space-sm);
   padding-top: var(--space-sm);
   border-top: 1px solid var(--border-light);
+  opacity: 0.45;
+  transition: opacity 0.2s ease;
 }
 
-/* ─── Priority Badge ─── */
-.priority-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 3px;
-  padding: 2px 10px;
-  border-radius: var(--radius-full);
-  font-size: var(--font-size-xs);
-  font-weight: 500;
+.task-card:hover .task-actions {
+  opacity: 1;
 }
 
-.priority-badge.high { background: var(--color-high-bg); color: var(--color-high); }
-.priority-badge.medium { background: var(--color-medium-bg); color: var(--color-medium); }
-.priority-badge.low { background: var(--color-low-bg); color: var(--color-low); }
+/* Touch devices — always show action buttons at full opacity */
+@media (pointer: coarse) {
+  .task-actions { opacity: 1; }
+}
 
 /* ─── Filter Bar ─── */
 .filter-bar {
@@ -393,9 +417,13 @@
 }
 
 /* ─── Empty State ─── */
-.empty-state-icon {
-  font-size: 56px;
-  margin-bottom: var(--space-md);
+.empty-state-svg {
+  display: block;
+  margin: 0 auto var(--space-md);
+  width: 120px;
+  height: auto;
+  color: var(--accent);
+  opacity: 0.2;
 }
 
 .empty-state-title {
@@ -410,6 +438,28 @@
   color: var(--text-secondary);
   margin-bottom: var(--space-lg);
   font-size: var(--font-size-sm);
+}
+
+/* ─── Timeline Group Header（透明粘性分区标题，制造"呼吸断层感"）─── */
+.task-group-header {
+  font-family: var(--font-body);
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  background: transparent;
+  padding: var(--space-xs) 0;
+  margin-top: var(--space-xl);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+/* Remove top margin from the very first group header */
+.task-group:first-child .task-group-header {
+  margin-top: 0;
 }
 
 /* ─── Form Modal ─── */
@@ -715,7 +765,7 @@
   box-shadow: var(--shadow-lg);
   z-index: 100;
   padding: var(--space-sm);
-  animation: scaleIn 0.12s ease;
+  animation: dropdownSpring 0.35s var(--spring-bounce) forwards;
 }
 
 .dropdown-item {
@@ -853,6 +903,113 @@
   font-size: var(--font-size-sm);
   color: var(--text-secondary);
 }
+
+/* ─── Quick Capture Bar（内联快速捕获条，减少弹窗干扰）─── */
+.quick-capture {
+  margin-bottom: var(--space-md);
+}
+
+.qc-collapsed {
+  background: var(--accent-bg);
+  border-radius: var(--radius-full);
+  padding: var(--space-md) var(--space-lg);
+  font-size: var(--font-size-sm);
+  color: var(--text-dim);
+  cursor: text;
+  text-align: center;
+  transition: all var(--transition-fast);
+  border: 1px solid transparent;
+  user-select: none;
+}
+
+.qc-collapsed:hover {
+  border-color: var(--accent-light);
+  color: var(--text-secondary);
+  box-shadow: var(--shadow-sm);
+}
+
+.qc-expanded {
+  background: var(--card);
+  border-radius: var(--radius-lg);
+  padding: var(--space-md);
+  border: 1px solid var(--border-light);
+  box-shadow: var(--shadow-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  animation: dropdownSpring 0.25s var(--spring-bounce) forwards;
+}
+
+.qc-input {
+  width: 100%;
+  border: none;
+  padding: var(--space-sm);
+  font-size: var(--font-size-base);
+  background: transparent;
+  color: var(--text);
+  outline: none;
+}
+
+.qc-input::placeholder {
+  color: var(--text-dim);
+}
+
+.qc-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  flex-wrap: wrap;
+}
+
+.qc-quick-btn {
+  padding: 4px 14px;
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-xs);
+  background: var(--border-light);
+  color: var(--text-secondary);
+  font-weight: 500;
+  transition: all var(--transition-fast);
+  border: 1px solid transparent;
+}
+
+.qc-quick-btn:hover {
+  background: var(--accent-bg);
+  color: var(--accent);
+}
+
+.qc-quick-btn.active {
+  background: var(--accent);
+  color: white;
+}
+
+.qc-priority-dots {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+}
+
+.qc-dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: all var(--transition-fast);
+}
+
+.qc-dot:hover {
+  transform: scale(1.2);
+}
+
+.qc-dot.active {
+  border-color: var(--text-secondary);
+  box-shadow: 0 0 0 2px var(--border-light);
+}
+
+.qc-dot-high    { background: var(--color-high); }
+.qc-dot-medium  { background: var(--color-medium); }
+.qc-dot-low     { background: var(--color-low); }
 
 /* ─── Scroll to Top ─── */
 .scroll-top-btn {

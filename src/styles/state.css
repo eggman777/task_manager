@@ -29,6 +29,34 @@
   100% { filter: brightness(1); }
 }
 
+/* ─── 弹簧物理动画（通过物理曲线提升高级感）─── */
+
+/* 复选框勾选 → 整卡右移6px后弹簧回弹 */
+@keyframes cardSpringRight {
+  0%   { transform: translateX(0); }
+  15%  { transform: translateX(6px); }
+  35%  { transform: translateX(-2px); }
+  55%  { transform: translateX(0.8px); }
+  75%  { transform: translateX(-0.3px); }
+  100% { transform: translateX(0); }
+}
+
+/* Modal 弹簧缩放：先缩小再弹过再回正 */
+@keyframes modalSpringScale {
+  0%   { opacity: 0; transform: scale(0.92); }
+  60%  { opacity: 1; transform: scale(1.02); }
+  80%  { transform: scale(0.98); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+/* 下拉菜单弹簧缩放 */
+@keyframes dropdownSpring {
+  0%   { opacity: 0; transform: scale(0.88); }
+  55%  { opacity: 1; transform: scale(1.04); }
+  75%  { transform: scale(0.97); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
 /* ─── Smooth Color Transitions ─── */
 .btn-primary,
 .stats-number,
@@ -36,7 +64,10 @@
 .quick-btn.active,
 .priority-option.selected,
 .stats-progress-fill,
-.priority-badge.high {
+.priority-badge.high,
+.task-group-header,
+.sparkline path,
+.qc-collapsed {
   transition: background 0.4s cubic-bezier(0.22, 1, 0.36, 1),
               color 0.4s cubic-bezier(0.22, 1, 0.36, 1),
               border-color 0.4s cubic-bezier(0.22, 1, 0.36, 1),
@@ -51,7 +82,7 @@
 }
 
 .modal-content {
-  animation: scaleIn var(--transition-normal) var(--transition-fast) ease backwards;
+  animation: modalSpringScale 0.4s var(--spring-bounce) forwards;
 }
 
 /* ─── Interactive ─── */
@@ -60,6 +91,7 @@
 .task-card:hover {
   transform: translateY(-2px);
   box-shadow: var(--shadow-md) !important;
+  transition: box-shadow var(--transition-normal), transform var(--transition-spring);
 }
 
 /* Button press */
@@ -69,7 +101,7 @@
 
 /* Checkbox pop on toggle */
 .task-checkbox:checked {
-  animation: checkPop 0.25s ease;
+  animation: cardSpringRight 0.35s var(--spring-bounce);
 }
 
 /* ─── Stats bar progress ─── */

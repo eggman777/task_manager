@@ -1,6 +1,6 @@
 // 📋 任务卡片组件
 
-import { getDeadlineStatus, getTaskCardStatusClass, getPriorityLabel } from '../core/utils.js'
+import { getDeadlineStatus, getTaskCardStatusClass, getPriorityLabel, isMobile } from '../core/utils.js'
 
 export function createTaskItem(task, { onToggle, onDelete, onEdit, onSelect, isSelectMode, isSelected }) {
   const deadlineInfo = getDeadlineStatus(task.deadline)
@@ -34,7 +34,6 @@ export function createTaskItem(task, { onToggle, onDelete, onEdit, onSelect, isS
     </div>` : ''}
 
     <div class="task-meta">
-      <span class="priority-badge ${task.priority}">${getPriorityLabel(task.priority)}</span>
       ${deadlineInfo.label ? `<span class="task-deadline ${deadlineInfo.status !== 'normal' && deadlineInfo.status !== 'none' ? 'deadline-' + deadlineInfo.status : ''}">${deadlineInfo.label}</span>` : ''}
       ${isCompleted ? `<span class="task-created-date">📅 ${createdDate}</span>` : ''}
     </div>
@@ -49,6 +48,14 @@ export function createTaskItem(task, { onToggle, onDelete, onEdit, onSelect, isS
   card.querySelector('[data-action="select"]')?.addEventListener('change', () => onSelect(task.id))
   card.querySelector('[data-action="delete"]').addEventListener('click', () => onDelete(task))
   card.querySelector('[data-action="edit"]')?.addEventListener('click', () => onEdit(task))
+
+  // Mobile: click card body to edit (not when clicking checkboxes/buttons)
+  if (isMobile() && !isSelectMode) {
+    card.addEventListener('click', (e) => {
+      if (e.target.closest('[data-action]') || e.target.closest('.swipe-actions')) return
+      onEdit(task)
+    })
+  }
 
   return card
 }

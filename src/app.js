@@ -9,6 +9,7 @@ import { createFilterBar } from './components/FilterBar.js'
 import { createStatsBar } from './components/StatsBar.js'
 import { createFAB } from './components/FAB.js'
 import { showToast } from './components/Toast.js'
+import { createQuickCapture } from './components/QuickCapture.js'
 import { PRESETS, applyAccent, saveAccent, loadAccent } from './core/theme.js'
 
 class App {
@@ -197,6 +198,7 @@ class App {
       </header>
 
       <main class="app-main">
+        ${!mobile ? '<div data-region="quick-capture"></div>' : ''}
         <div data-region="stats"></div>
         <div data-region="filter-bar"></div>
         <div data-region="task-list"></div>
@@ -217,7 +219,12 @@ class App {
     `
 
     // ━━━ 事件绑定 ━━━
-    appEl.querySelector('[data-action="new-task"]')?.addEventListener('click', () => this.openNewTaskForm(null))
+    appEl.querySelector('[data-action="new-task"]')?.addEventListener('click', () => {
+      // 优先展开 Quick Capture 条，fallback 到 Modal
+      const qcBar = document.querySelector('.qc-collapsed')
+      if (qcBar) { qcBar.click(); return }
+      this.openNewTaskForm(null)
+    })
 
     // 下拉菜单 — 切换
     appEl.querySelector('[data-action="menu-toggle"]')?.addEventListener('click', (e) => {
@@ -295,6 +302,14 @@ class App {
       this.selectedIds.clear()
       this.render()
     })
+
+    // Quick Capture Bar（桌面端内联快速捕获条）
+    const qcRegion = appEl.querySelector('[data-region="quick-capture"]')
+    if (qcRegion) {
+      qcRegion.appendChild(createQuickCapture({
+        onSubmit: (data) => this.handleCreate(data)
+      }))
+    }
 
     // 统计栏
     const statsRegion = appEl.querySelector('[data-region="stats"]')

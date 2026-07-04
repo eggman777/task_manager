@@ -71,6 +71,11 @@
   --transition-fast: 180ms cubic-bezier(0.22, 1, 0.36, 1);
   --transition-normal: 300ms cubic-bezier(0.22, 1, 0.36, 1);
   --transition-slow: 500ms cubic-bezier(0.22, 1, 0.36, 1);
+
+  /* ─── 弹簧物理曲线（模拟阻尼0.85/刚度320，通过物理曲线提升高级感）─── */
+  --spring-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --spring-damped: cubic-bezier(0.25, 1.0, 0.5, 1.1);
+  --transition-spring: 350ms cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 /* ============================================

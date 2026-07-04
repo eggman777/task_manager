@@ -6,7 +6,8 @@
 @media (pointer: coarse) {
   .btn, .filter-btn, .quick-btn, .menu-toggle-btn, .multi-select-btn,
   .dd-color-swatch, .tag-preset-btn, .tag-chip-remove,
-  .form-modal-close, .scroll-top-btn, .select-all-label {
+  .form-modal-close, .scroll-top-btn, .select-all-label,
+  .qc-quick-btn, .qc-dot {
     min-height: 44px;
     min-width: 44px;
   }
@@ -217,7 +218,7 @@
   padding: var(--space-lg);
   padding-bottom: calc(var(--space-lg) + env(safe-area-inset-bottom, 0px));
   overflow-y: auto;
-  animation: sheetSlideUp 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+  animation: sheetSlideUp 0.35s var(--spring-bounce);
 }
 
 .bottom-sheet.dragging {
